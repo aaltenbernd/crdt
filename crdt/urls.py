@@ -7,5 +7,5 @@ urlpatterns = [
     url(r'^increment$', views.increment, name='increment'),
     url(r'^decrement$', views.decrement, name='decrement'),
     url(r'^delete$', views.delete, name='delete'),
-    url(r'^receive', connect.receive, name='receive')
+    url(r'^receive/', connect.receive, name='receive')
 ]

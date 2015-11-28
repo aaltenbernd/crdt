@@ -15,6 +15,7 @@ def index(request):
         if form.is_valid():
             title = escape(request.POST.get('title'))
             Number.objects.create(title=title)
+            send('add', title)
             return redirect('index')
 
     else:
