@@ -23,6 +23,8 @@ def receive(request):
 			number.increment()
 		elif op == 'decrement':
 			number.decrement()
+		elif op == 'delete':
+			number.delete()
 
 		number.save()
 		
