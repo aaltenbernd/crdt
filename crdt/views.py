@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from .models import Number
 from .forms import NumberForm
+from .connect import send
 from django.utils import timezone
 from django.utils.html import escape
 
@@ -8,6 +9,8 @@ def index(request):
     if request.method == 'POST':
 
         form = NumberForm(request.POST)
+
+        print request.POST
 
         if form.is_valid():
             title = escape(request.POST.get('title'))
@@ -33,6 +36,8 @@ def increment(request):
 
     number.save()
 
+    send('increment', number.title)
+
     return redirect('index')
 
 def decrement(request):
@@ -46,6 +51,8 @@ def decrement(request):
     number.decrement()
 
     number.save()
+
+    send('decrement', number.title)
 
     return redirect('index')
 
