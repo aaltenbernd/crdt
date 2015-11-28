@@ -23,10 +23,11 @@ def receive(request):
 			number.increment()
 		elif op == 'decrement':
 			number.decrement()
-		elif op == 'delete':
+		
+		if op == 'delete':
 			number.delete()
-
-		number.save()
+		else:
+			number.save()
 		
 		return redirect('index')
 	
