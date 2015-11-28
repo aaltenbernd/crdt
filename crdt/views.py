@@ -67,4 +67,6 @@ def delete(request):
 
     number.delete()
 
+    send('delete', number.title)
+
     return redirect('index')
