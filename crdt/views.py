@@ -4,8 +4,6 @@ from .forms import NumberForm
 from django.utils import timezone
 from django.utils.html import escape
 
-HOSTNAME = [127.0.0.1:8000]
-
 def index(request):
     if request.method == 'POST':
 
@@ -48,5 +46,17 @@ def decrement(request):
     number.decrement()
 
     number.save()
+
+    return redirect('index')
+
+def delete(request):
+    number_id = request.GET.get('id', '')
+
+    try:
+        number = Number.objects.filter(id=number_id)[0]
+    except(IndexError, ValueError):
+        return redirect('index')
+
+    number.delete()
 
     return redirect('index')

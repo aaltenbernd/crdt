@@ -14,3 +14,6 @@ class Number(models.Model):
 
 	def decrement(self):
 		self.number = self.number - 1
+
+	def delete(self, *args, **kwargs):
+		super(Number, self).delete(*args, **kwargs)
