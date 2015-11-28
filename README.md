@@ -1,2 +1,1 @@
-# crdt
-Bachelor-Thesis : Entwicklung eines verteilten Nachrichtensystems mit optimistischer Replikation
+# Bachelor-Thesis : Entwicklung eines verteilten Nachrichtensystems mit optimistischer Replikation
