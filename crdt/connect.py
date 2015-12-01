@@ -34,4 +34,7 @@ def receive(request):
 	return redirect('index')
 
 def send(op, number_title):
-	r = requests.post("http://127.0.0.1:8000/receive/", data = {'op' : op, 'title' : number_title})
+	try:
+		r = requests.post("http://127.0.0.1:8000/receive/", data = {'op' : op, 'title' : number_title})
+	except(ConnectionError):
+		send(op, number_title)
