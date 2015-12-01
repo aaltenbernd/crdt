@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from .models import Number
 from django.views.decorators.csrf import csrf_exempt
 import requests
+import requests.exceptions.ConnectionError
 from django.http import HttpResponse
 
 @csrf_exempt
