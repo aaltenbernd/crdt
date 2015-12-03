@@ -37,6 +37,9 @@ def receive_thread():
 					number.decrement()
 		
 				if op.operation == 'delete':
+					for open_op in IncomingOperation.objects.all():
+						if op.num == open_op.num:
+							op.delete()
 					number.delete()
 				else:	
 					number.save()
