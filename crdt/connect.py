@@ -31,19 +31,19 @@ def receive_thread():
 
 			try:
 				number = Number.objects.filter(title=op.num)[0]
-				if op == 'increment':
+				if op.operation == 'increment':
 					number.increment()
-				elif op == 'decrement':
+				elif op.operation == 'decrement':
 					number.decrement()
 		
-				if op == 'delete':
+				if op.operation == 'delete':
 					number.delete()
 				else:	
 					number.save()
 
 				op.delete()
 			except:
-				if op == 'add':
+				if op.operation == 'add':
 					number = Number()
 					number.title = title
 					number.save()
