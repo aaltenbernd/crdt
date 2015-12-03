@@ -3,36 +3,37 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Number, Node
 
 import requests
+import thread
 import Queue
 
 @csrf_exempt
 def receive(request):
 	if request.method == 'POST':
-		op = request.POST.get('op', None)
-		title = request.POST.get('title', None)
-
-		try:
-			number = Number.objects.filter(title=title)[0]
-		except:
-			if op == 'add':
-				number = Number()
-				number.title = title
-				number.save()
-			return redirect('index')
-
-		if op == 'increment':
-			number.increment()
-		elif op == 'decrement':
-			number.decrement()
-		
-		if op == 'delete':
-			number.delete()
-		else:
-			number.save()
-		
+		thread.start_new_thread(receive_thread, (request.POST.get('op', None), request.POST.get('title', None)))
 		return redirect('index')
-	
-	return redirect('index')
+
+	else:	
+		return redirect('index')
+
+def receive_thread(op, title):
+	try:
+		number = Number.objects.filter(title=title)[0]
+	except:
+		if op == 'add':
+			number = Number()
+			number.title = title
+			number.save()
+		return
+
+	if op == 'increment':
+		number.increment()
+	elif op == 'decrement':
+		number.decrement()
+		
+	if op == 'delete':
+		number.delete()
+	else:
+		number.save()
 
 def send(node):
 	queue = Queue.Queue()
