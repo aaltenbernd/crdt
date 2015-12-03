@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import Number, Node, Operation
+from .models import Number, Node, IncomingOperation, OutgoingOperation
 
 admin.site.register(Number)
 admin.site.register(Node)
-admin.site.register(Operation)
+admin.site.register(IncomingOperation)
+admin.site.register(OutgoingOperation)

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
-from .models import Number, Node
+from .models import Number, Node, IncomingOperation
 
 import requests
 import thread
@@ -9,33 +9,48 @@ import Queue
 @csrf_exempt
 def receive(request):
 	if request.method == 'POST':
-		thread.start_new_thread(receive_thread, (request.POST.get('op', None), request.POST.get('title', None)))
-		return redirect('index')
+		operation = request.POST.get('op', None)
+		num = request.POST.get('title', None)
 
+		incoming_op = IncomingOperation.objects.create(operation=operation, num=num)
+
+		thread.start_new_thread(receive_thread, (incoming_op, ))
+
+		return redirect('index')
 	else:	
 		return redirect('index')
 
-def receive_thread(op, title):
-	try:
-		number = Number.objects.filter(title=title)[0]
-	except:
-		if op == 'add':
-			number = Number()
-			number.title = title
-			number.save()
-		return
+def receive_thread(incoming_op):
+	queue = Queue.Queue()
 
-	if op == 'increment':
-		number.increment()
-	elif op == 'decrement':
-		number.decrement()
+	while True:
+		for open_op in IncomingOperation.objects.all():
+			queue.put(open_op)
+
+		while queue.empty() == False:
+			op = queue.get()
+			print "Incoming: " + str(op)
+
+			try:
+				number = Number.objects.filter(title=op.num)[0]
+			except:
+				if op == 'add':
+					number = Number()
+					number.title = title
+					number.save()
+					op.delete()
+					
+			if op == 'increment':
+				number.increment()
+			elif op == 'decrement':
+				number.decrement()
 		
-	if op == 'delete':
-		number.delete()
-	else:
-		number.save()
+			if op == 'delete':
+				number.delete()
+			else:	
+				number.save()
 
-def send(node):
+def send_thread(node):
 	queue = Queue.Queue()
 
 	while True:	
@@ -44,6 +59,7 @@ def send(node):
 
 		while queue.empty() == False:
 			op = queue.get()
+			print "Outgoing: " + str(op)
 			try:
 				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num})
 				op.delete()

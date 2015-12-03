@@ -72,7 +72,7 @@ def delete(request):
     return redirect('index')
 
 def broadcast(operation, number_title):
-    op = Operation.objects.create(operation=operation, num=number_title)
+    op = OutgoingOperation.objects.create(operation=operation, num=number_title)
 
     for node in Node.objects.all():
         node.open_ops.add(op)

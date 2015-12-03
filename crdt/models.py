@@ -23,12 +23,19 @@ class Number(models.Model):
 
 class Node(models.Model):
 	port = models.IntegerField(default="8000")
-	open_ops = models.ManyToManyField('Operation', related_name='open_operation', blank=True)
+	open_ops = models.ManyToManyField('OutgoingOperation', related_name='open_operation', blank=True)
 
 	def __str__(self):
 		return HOSTNAME + ':' + str(self.port)
 
-class Operation(models.Model):
+class OutgoingOperation(models.Model):
+	operation = models.CharField(max_length=20)
+	num = models.CharField(max_length=10)
+
+	def __str__(self):
+		return "Operation: " + self.operation + " to " + self.num
+
+class IncomingOperation(models.Model):
 	operation = models.CharField(max_length=20)
 	num = models.CharField(max_length=10)
 
