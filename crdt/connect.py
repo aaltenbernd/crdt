@@ -14,13 +14,11 @@ def receive(request):
 
 		incoming_op = IncomingOperation.objects.create(operation=operation, num=num)
 
-		thread.start_new_thread(receive_thread, (incoming_op, ))
-
 		return redirect('index')
 	else:	
 		return redirect('index')
 
-def receive_thread(incoming_op):
+def receive_thread():
 	queue = Queue.Queue()
 
 	while True:
