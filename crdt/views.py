@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import Number, Node, Operation
 from .forms import NumberForm
-from .sender import Sender
 from django.utils import timezone
 from django.utils.html import escape
 
