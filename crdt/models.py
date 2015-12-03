@@ -23,7 +23,7 @@ class Number(models.Model):
 
 class Node(models.Model):
 	port = models.IntegerField(default="8000")
-	open_ops = models.ManyToManyField('Operation', related_name='open_operation')
+	open_ops = models.ManyToManyField('Operation', related_name='open_operation', blank=True)
 
 	def __str__(self):
 		return HOSTNAME + ':' + str(self.port)
