@@ -45,7 +45,7 @@ def receive_thread():
 			except:
 				if op.operation == 'add':
 					number = Number()
-					number.title = title
+					number.title = op.num
 					number.save()
 					op.delete()			
 
