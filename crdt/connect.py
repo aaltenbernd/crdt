@@ -31,15 +31,13 @@ def receive_thread():
 
 			try:
 				number = Number.objects.filter(title=op.num)[0]
+
 				if op.operation == 'increment':
 					number.increment()
 				elif op.operation == 'decrement':
 					number.decrement()
 		
 				if op.operation == 'delete':
-					for open_op in IncomingOperation.objects.all():
-						if op.num == open_op.num and op != open_op:
-							open_op.delete() 
 					number.delete()
 				else:	
 					number.save()
@@ -50,7 +48,8 @@ def receive_thread():
 					number = Number()
 					number.title = op.num
 					number.save()
-					op.delete()			
+				op.delete()
+
 
 def send_thread(node):
 	queue = Queue.Queue()
