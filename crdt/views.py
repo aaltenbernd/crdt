@@ -15,7 +15,7 @@ def index(request):
 
             Number.objects.create(title=title)
 
-            #send('add', title)
+            broadcast('add', title)
 
             return redirect('index')
 
@@ -38,13 +38,7 @@ def increment(request):
 
     number.save()
 
-    op = Operation.objects.create(operation='increment', num=number)
-
-    for node in Node.objects.all():
-        node.open_ops.add(op)
-        node.save()
-
-    # send('increment', number.title);
+    broadcast('increment', number.title)
 
     return redirect('index')
 
@@ -60,9 +54,7 @@ def decrement(request):
 
     number.save()
 
-    
-
-    # send('decrement', number.title)
+    broadcast('decrement', number.title)
 
     return redirect('index')
 
@@ -74,8 +66,15 @@ def delete(request):
     except(IndexError, ValueError):
         return redirect('index')
 
-    number.delete()
+    broadcast('delete', number.title)
 
-    #send('delete', number.title)
+    number.delete()    
 
     return redirect('index')
+
+def broadcast(operation, number_title):
+    op = Operation.objects.create(operation=operation, num=number_title)
+
+    for node in Node.objects.all():
+        node.open_ops.add(op)
+        node.save()

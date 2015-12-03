@@ -30,7 +30,7 @@ class Node(models.Model):
 
 class Operation(models.Model):
 	operation = models.CharField(max_length=20)
-	num = models.ForeignKey(Number, related_name='num_op')
+	num = models.CharField(max_length=10)
 
 	def __str__(self):
-		return "Operation: " + self.operation + " to " + str(self.num)
+		return "Operation: " + self.operation + " to " + self.num
