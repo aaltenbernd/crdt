@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
-from .models import Number
+from .models import Number, Node, Operation
 from .forms import NumberForm
-from .connect import send
+from .sender import Sender
 from django.utils import timezone
 from django.utils.html import escape
 
@@ -10,12 +10,13 @@ def index(request):
 
         form = NumberForm(request.POST)
 
-        print request.POST
-
         if form.is_valid():
             title = escape(request.POST.get('title'))
+
             Number.objects.create(title=title)
-            send('add', title)
+
+            #send('add', title)
+
             return redirect('index')
 
     else:
@@ -37,7 +38,13 @@ def increment(request):
 
     number.save()
 
-    send('increment', number.title)
+    op = Operation.objects.create(operation='increment', num=number)
+
+    for node in Node.objects.all():
+        node.open_ops.add(op)
+        node.save()
+
+    # send('increment', number.title);
 
     return redirect('index')
 
@@ -53,7 +60,9 @@ def decrement(request):
 
     number.save()
 
-    send('decrement', number.title)
+    
+
+    # send('decrement', number.title)
 
     return redirect('index')
 
@@ -67,6 +76,6 @@ def delete(request):
 
     number.delete()
 
-    send('delete', number.title)
+    #send('delete', number.title)
 
     return redirect('index')

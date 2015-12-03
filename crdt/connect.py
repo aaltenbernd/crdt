@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect
-from .models import Number
 from django.views.decorators.csrf import csrf_exempt
+from .models import Number, Node
+
 import requests
-import requests.exceptions.ConnectionError
-from django.http import HttpResponse
+import Queue
 
 @csrf_exempt
 def receive(request):
@@ -34,8 +34,17 @@ def receive(request):
 	
 	return redirect('index')
 
-def send(op, number_title):
-	try:
-		r = requests.post("http://127.0.0.1:8000/receive/", data = {'op' : op, 'title' : number_title})
-	except(ConnectionError):
-		send(op, number_title)
+def send(node):
+	queue = Queue.Queue()
+
+	while True:	
+		for open_op in node.open_ops.all():
+			queue.put(open_op)
+
+		while queue.empty() == False:
+			op = queue.get()
+			try:
+				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num})
+				op.delete()
+			except(requests.ConnectionError):
+				print 'ConnectionError'
