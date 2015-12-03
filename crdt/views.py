@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Number, Node, IncomingOperation
+from .models import Number, Node, OutgoingOperation
 from .forms import NumberForm
 from django.utils import timezone
 from django.utils.html import escape
