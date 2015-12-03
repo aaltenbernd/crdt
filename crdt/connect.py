@@ -48,19 +48,19 @@ def receive_thread():
 					number = Number()
 					number.title = op.num
 					number.save()
-				op.delete()
-
+					op.delete()
 
 def send_thread(node):
 	queue = Queue.Queue()
 
-	while True:	
+	while True:
 		for open_op in node.open_ops.all():
 			queue.put(open_op)
 
 		while queue.empty() == False:
 			op = queue.get()
 			print "Outgoing: " + str(op)
+
 			try:
 				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num})
 				op.delete()
