@@ -38,8 +38,8 @@ def receive_thread():
 		
 				if op.operation == 'delete':
 					for open_op in IncomingOperation.objects.all():
-						if op.num == open_op.num:
-							op.delete()
+						if op.num == open_op.num and op not open_op:
+							open_op.delete() 
 					number.delete()
 				else:	
 					number.save()
