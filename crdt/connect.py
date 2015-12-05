@@ -5,12 +5,15 @@ from .models import Number, Node, IncomingOperation
 import requests
 import thread
 import Queue
+import time
 
 @csrf_exempt
 def receive(request):
 	if request.method == 'POST':
 		operation = request.POST.get('op', None)
 		num = request.POST.get('title', None)
+
+		time.sleep(3)
 
 		incoming_op = IncomingOperation.objects.create(operation=operation, num=num)
 
