@@ -16,6 +16,7 @@ def receive(request):
 		
 
 		if not Number.objects.contains(title=num) and operation == 'delete':
+			print 'Number dont exist...'
 			return HttpResponse(content="", status=500)
 		else:
 			incoming_op = IncomingOperation.objects.create(operation=operation, num=num)
