@@ -24,7 +24,7 @@
                         <button class="btn btn-default" type="submit" value="Submit">
                             Delete All
                         </button>
-                </a></br>
+                </a></br></br>
                 <form action="{% url 'index' %}" method="post">
                     {% csrf_token %} 
                     {% if form.errors %} {% for error in form.errors.items %}
