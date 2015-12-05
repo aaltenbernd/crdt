@@ -71,6 +71,12 @@ def delete(request):
 
     return redirect('index')
 
+def delete_all(request):
+    for num in Number.objects.all():
+        num.delete()
+
+    return redirect('index')
+
 def broadcast(operation, number_title):
     op = OutgoingOperation.objects.create(operation=operation, num=number_title)
 

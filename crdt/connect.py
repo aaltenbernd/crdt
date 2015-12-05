@@ -12,13 +12,11 @@ def receive(request):
 	if request.method == 'POST':
 		operation = request.POST.get('op', None)
 		num = request.POST.get('title', None)
+		date = request.POST.get('date', None)
 
-		if Number.objects.filter(title=num) is None and operation == 'delete':
-			print "Number don't exist..."
-			return HttpResponse(content="", status=500)
-		else:
-			incoming_op = IncomingOperation.objects.create(operation=operation, num=num)
-			return HttpResponse(content="", status=200)
+		incoming_op = IncomingOperation.objects.create(operation=operation, num=num, date=date)
+
+		return redirect('index')
 	else:	
 		return redirect('index')
 
@@ -67,11 +65,7 @@ def send_thread(node):
 
 			try:
 				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num}, timeout=5)
-				if r.status_code == 500:
-					print 'WHAAT'	
-				else:
-					op.delete()
+				op.delete()
 			except requests.exceptions.RequestException as e:
-				print e
 				time.sleep(2)
 				print 'fail... trying again'

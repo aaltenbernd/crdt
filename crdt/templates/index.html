@@ -20,6 +20,11 @@
         </div>
         <div class="row">
             <div class="col-xs-12">
+                <a href="{% url 'delete' %}?id={{ number.id }}"
+                        <button class="btn btn-default" type="submit" value="Submit">
+                            ! Delete - All - Numbers !
+                        </button>
+                </a></br>
                 <form action="{% url 'index' %}" method="post">
                     {% csrf_token %} 
                     {% if form.errors %} {% for error in form.errors.items %}
@@ -58,11 +63,11 @@
                             -
                         </button>
                     </a></br>
-                    <a href="{% url 'delete' %}?id={{ number.id }}"
+                    <!--<a href="{% url 'delete' %}?id={{ number.id }}"
                         <button class="btn btn-default" type="submit" value="Submit">
                             Delete
                         </button>
-                    </a></br>
+                    </a></br>-->
                 </div>
                 {% endfor %} {% endif %}
             </div> 
