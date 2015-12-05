@@ -17,7 +17,7 @@ def receive(request):
 
 		if number is None and operation == 'delete':
 			return HttpResponse(content="", status=500)
-		else 
+		else:
 			incoming_op = IncomingOperation.objects.create(operation=operation, num=num)
 			return HttpResponse(content="", status=200)
 	else:	
