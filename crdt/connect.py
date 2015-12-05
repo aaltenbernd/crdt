@@ -12,9 +12,8 @@ def receive(request):
 	if request.method == 'POST':
 		operation = request.POST.get('op', None)
 		num = request.POST.get('title', None)
-		date = request.POST.get('date', None)
 
-		incoming_op = IncomingOperation.objects.create(operation=operation, num=num, date=date)
+		incoming_op = IncomingOperation.objects.create(operation=operation, num=num)
 
 		return redirect('index')
 	else:	
