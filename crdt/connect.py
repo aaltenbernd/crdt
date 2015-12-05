@@ -13,9 +13,13 @@ def receive(request):
 		operation = request.POST.get('op', None)
 		num = request.POST.get('title', None)
 
-		incoming_op = IncomingOperation.objects.create(operation=operation, num=num)
+		number = Number.objects.filter(title=num)[0]
 
-		return redirect('index')
+		if number is None and operation == 'delete':
+			return HttpResponse(content="", status=500)
+		else 
+			incoming_op = IncomingOperation.objects.create(operation=operation, num=num)
+			return HttpResponse(content="", status=200)
 	else:	
 		return redirect('index')
 
