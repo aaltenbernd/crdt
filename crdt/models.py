@@ -31,7 +31,6 @@ class Node(models.Model):
 class OutgoingOperation(models.Model):
 	operation = models.CharField(max_length=20)
 	num = models.CharField(max_length=10)
-	date = models.DateTimeField()
 
 	def __str__(self):
 		return "Operation: " + self.operation + " to " + self.num + " with date: " + self.date
