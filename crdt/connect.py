@@ -62,7 +62,7 @@ def send_thread(node):
 			print "Outgoing: " + str(op)
 
 			try:
-				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num}, timeout=0.0000001)
+				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num}, timeout=5)
 				print r.status_code
 				op.delete()
 			except requests.exceptions.Timeout:
