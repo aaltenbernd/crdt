@@ -75,7 +75,7 @@ def delete_all(request):
     for num in Number.objects.all():
         num.delete()
 
-    print 'ÄV?*AJOIRHFPJKA'
+    print 'test'
 
     return redirect('index')
 
