@@ -13,8 +13,6 @@ def receive(request):
 		operation = request.POST.get('op', None)
 		num = request.POST.get('title', None)
 
-		time.sleep(3)
-
 		incoming_op = IncomingOperation.objects.create(operation=operation, num=num)
 
 		return redirect('index')
@@ -66,14 +64,7 @@ def send_thread(node):
 
 			try:
 				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num}, timeout=5)
-				print r.status_code
 				op.delete()
-			except requests.exceptions.Timeout:
-				print 'TIMEOUT'
-    			# Maybe set up for a retry, or continue in a retry loop
-			except requests.exceptions.TooManyRedirects:
-				print 'TooManyRedirects'
-    			# Tell the user their URL was bad and try a different one
-			except requests.exceptions.RequestException as e:
-    			# catastrophic error. bail.
-				print e
+			except requests.exceptions.RequestException:
+    			time.sleep(2)
+    			print 'fail... trying again'
