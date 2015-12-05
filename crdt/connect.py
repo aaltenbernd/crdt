@@ -67,8 +67,8 @@ def send_thread(node):
 
 			try:
 				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num}, timeout=5)
-				if r.status_code == 200:
-					op.delete()
+				print r.status_code	
+				op.delete()
 			except requests.exceptions.RequestException as e:
 				print e
 				time.sleep(2)
