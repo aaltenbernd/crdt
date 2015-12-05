@@ -63,6 +63,7 @@ def send_thread(node):
 
 			try:
 				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num})
+				print r.status_code
 				op.delete()
 			except(requests.ConnectionError):
 				print 'ConnectionError'
