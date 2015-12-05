@@ -20,9 +20,9 @@
         </div>
         <div class="row">
             <div class="col-xs-12">
-                <a href="{% url 'delete' %}?id={{ number.id }}"
+                <a href="{% url 'delete_all' %}"
                         <button class="btn btn-default" type="submit" value="Submit">
-                            ! Delete - All - Numbers !
+                            Delete All
                         </button>
                 </a></br>
                 <form action="{% url 'index' %}" method="post">
