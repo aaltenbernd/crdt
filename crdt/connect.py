@@ -62,8 +62,15 @@ def send_thread(node):
 			print "Outgoing: " + str(op)
 
 			try:
-				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num})
+				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num}, timeout=0.0000001)
 				print r.status_code
 				op.delete()
-			except(requests.ConnectionError):
-				print 'ConnectionError'
+			except requests.exceptions.Timeout:
+				print 'TIMEOUT'
+    			# Maybe set up for a retry, or continue in a retry loop
+			except requests.exceptions.TooManyRedirects:
+				print 'TooManyRedirects'
+    			# Tell the user their URL was bad and try a different one
+			except requests.exceptions.RequestException as e:
+    			# catastrophic error. bail.
+    			print e
