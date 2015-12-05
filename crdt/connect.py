@@ -13,9 +13,9 @@ def receive(request):
 		operation = request.POST.get('op', None)
 		num = request.POST.get('title', None)
 
-		number = Number.objects.filter(title=num)[0]
+		
 
-		if number is None and operation == 'delete':
+		if not Number.objects.contains(title=num) and operation == 'delete':
 			return HttpResponse(content="", status=500)
 		else:
 			incoming_op = IncomingOperation.objects.create(operation=operation, num=num)
