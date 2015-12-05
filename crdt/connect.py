@@ -66,5 +66,5 @@ def send_thread(node):
 				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num}, timeout=5)
 				op.delete()
 			except requests.exceptions.RequestException:
-    			time.sleep(2)
+				time.sleep(2)
     			print 'fail... trying again'
