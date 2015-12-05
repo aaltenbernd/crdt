@@ -33,11 +33,10 @@ class OutgoingOperation(models.Model):
 	num = models.CharField(max_length=10)
 
 	def __str__(self):
-		return "Operation: " + self.operation + " to " + self.num + " with date: " + self.date
-
+		return "Operation: " + self.operation + " to " + self.num
 class IncomingOperation(models.Model):
 	operation = models.CharField(max_length=20)
 	num = models.CharField(max_length=10)
 
 	def __str__(self):
-		return "Operation: " + self.operation + " to " + self.num + " with date: " + self.date
+		return "Operation: " + self.operation + " to " + self.num
