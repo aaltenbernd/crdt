@@ -13,7 +13,7 @@ def receive(request):
 		operation = request.POST.get('op', None)
 		num = request.POST.get('title', None)
 
-		if not Number.objects.filter(title=num) and operation == 'delete':
+		if Number.objects.filter(title=num) is None and operation == 'delete':
 			print "Number don't exist..."
 			return HttpResponse(content="", status=500)
 		else:
@@ -67,8 +67,10 @@ def send_thread(node):
 
 			try:
 				r = requests.post(str(node) + "/receive/", data = {'op' : op.operation, 'title' : op.num}, timeout=5)
-				print r.status_code	
-				op.delete()
+				if r.status_code == 500:
+					print 'WHAAT'	
+				else:
+					op.delete()
 			except requests.exceptions.RequestException as e:
 				print e
 				time.sleep(2)
