@@ -75,6 +75,8 @@ def delete_all(request):
     for num in Number.objects.all():
         num.delete()
 
+    print 'ÄV?*AJOIRHFPJKA'
+
     return redirect('index')
 
 def broadcast(operation, number_title):
