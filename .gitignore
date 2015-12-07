@@ -1,5 +1,4 @@
-# ignore cache files
+# Django
 *.pyc
-
-# ignore sqlite
-db.sqlite3
+*.sqlite3
+crdt/migrations/0*
