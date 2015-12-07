@@ -9,12 +9,16 @@ class Command(BaseCommand):
 	
 	def handle(self, *args, **options):
 
+		# start one thread for each node of the cluster
+		# each thread sends operations to one node of the cluster
 		for node in Node.objects.all():
 			print 'Starting thread - handling this host: ' + str(node)
 			thread.start_new_thread(send_thread, (node, ))
 
-		print 'Starting thread - handling incoming Operations'
+		# start one thread for receiving operations 
+		print 'Starting thread - handling incoming operations'
 		thread.start_new_thread(receive_thread, ( ))
 
+		# run as long as there is no KeyboardInterrupt [ctrl + c]
 		while True:
 			pass

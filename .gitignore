@@ -1,0 +1,5 @@
+# ignore cache files
+*.pyc
+
+# ignore sqlite
+db.sqlite3

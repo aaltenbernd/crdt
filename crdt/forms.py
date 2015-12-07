@@ -1,6 +1,11 @@
 from django import forms
 from .models import Number
 
+# just a form to add a new Number
+# form checks :
+#	number has a title
+#	number is to long
+#	number already exist
 class NumberForm(forms.Form):
 	title = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': "form-control"}))
 
