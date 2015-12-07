@@ -1,25 +1,44 @@
 from django import forms
-from .models import Number
+from django.forms import PasswordInput
+from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import authenticate
+from .models import Message
 
-# just a form to add a new Number
-# form checks :
-#	number has a title
-#	number is to long
-#	number already exist
-class NumberForm(forms.Form):
-	title = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': "form-control"}))
+class MessageForm(forms.Form):
+	reader = forms.CharField(required=False, widget=forms.TextInput(
+		attrs={'class': 'form-control', 'placeholder': 'myself', 'readonly':'readonly'}))
+	text = forms.CharField(required=False, widget=forms.Textarea(
+        attrs={'class': 'form-control text-input', 'placeholder': 'Message', 'rows': '3'}))
 
 	def clean(self):
-		title = self.cleaned_data['title']
+		text = self.cleaned_data['text']
 
-		if len(title) == 0:
-			self._errors['title_empty'] = "The number needs a title."
+		if len(text) == 0:
+			self._errors['text_empty'] = "No empty messages allowed"
 
-		if len(title) > 20:
-			self._errors['title_length'] = "The title exceeds maximum length of 20 characters."
+		if len(text) > 320:
+			self._errors['text_length'] = "The text exceeds maximum length of 320 characters"
 
-		for num in Number.objects.all():
-			if num.title == title:
-				self._errors['title_unique'] = "The title already exist."
+		return text
 
-		return title
+class LoginForm(forms.Form):
+	username = forms.CharField(label='Username', widget=forms.TextInput(attrs={'class': "form-control"}),required=False)
+	password = forms.CharField(label='Password', widget=PasswordInput(attrs={'class': "form-control"}), required=False)
+
+	def clean(self):
+		username = self.cleaned_data['username']
+		password = self.cleaned_data['password']
+
+		try:
+			user = User.objects.get(username=username)
+		except ObjectDoesNotExist:
+			self._errors['user_not_exit'] = "User don't exist."
+			return username, password
+
+		user = authenticate(username=username, password=password)
+
+		if not user:
+			self._errors['wrong_password'] = "Wrong password."
+
+		return user, password

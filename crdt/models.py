@@ -1,31 +1,44 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 import Queue
 
 # localHost
 HOSTNAME = "http://127.0.0.1"
+
+def createUser(username, password):
+	user = User.objects.create_user(username=username, password=password)
+	profile = UserProfile.objects.create(user=user)
+	user.userprofile = profile
+	return
 
 # each number saves a title, a value and a date
 # increment / decrement are commutative operations
 # which can be executed without consider the order
 # title is not unique right now
 # date saves the creationdate 
-class Number(models.Model):
-	title = models.CharField(max_length=10, blank=True, unique=True)
-	number = models.IntegerField(default=0)
-	date = models.DateTimeField(default=timezone.now)
+class UserProfile(models.Model):
+	user = models.OneToOneField(User)
+	counter = models.IntegerField(default=0)
 
 	def __str__(self):
-		return str(self.title)
+		return str(self.user) + ":" + str(self.counter)
 
 	def increment(self):
-		self.number = self.number + 1
+		self.counter = self.counter + 1
 
 	def decrement(self):
-		self.number = self.number - 1
+		self.counter = self.counter - 1
 
-	def delete(self, *args, **kwargs):
-		super(Number, self).delete(*args, **kwargs)
+class Message(models.Model):
+	message_id = models.IntegerField()
+	text = models.CharField(max_length=320)
+	date = models.DateTimeField(default=timezone.now)
+	author = models.CharField(max_length=10, default="myself")
+	#reader = models.CharField(max_length=10)
+
+	def __str__(self):
+		return self.text + ' (' + self.from_user + ')'
 
 # each node saves the port and the open operations
 # the full address of the node is given by str(Node) = http://127.0.0.1:PORT
@@ -37,18 +50,14 @@ class Node(models.Model):
 	def __str__(self):
 		return HOSTNAME + ':' + str(self.port)
 
-# saves the open operation which has to be send to other hosts
 class OutgoingOperation(models.Model):
-	operation = models.CharField(max_length=20)
-	num = models.CharField(max_length=10)
+	data = models.CharField(max_length=400)
 
 	def __str__(self):
-		return "Operation: " + self.operation + " to " + self.num
+		return "Operation: " + self.data
 
-# saves the open operation which has to be executed
 class IncomingOperation(models.Model):
-	operation = models.CharField(max_length=20)
-	num = models.CharField(max_length=10)
+	data = models.CharField(max_length=400)
 
 	def __str__(self):
-		return "Operation: " + self.operation + " to " + self.num
+		return "Incoming: " + self.data
