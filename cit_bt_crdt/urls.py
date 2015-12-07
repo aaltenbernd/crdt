@@ -1,4 +1,4 @@
-"""cit_bt_crdt URL Configuration
+"""cit_bt URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.8/topics/http/urls/
@@ -18,4 +18,5 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url(r'', include('crdt.urls'))
 ]

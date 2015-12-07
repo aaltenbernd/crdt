@@ -1,0 +1,4 @@
+# Django
+*.pyc
+*.sqlite3
+crdt/migrations/0*
