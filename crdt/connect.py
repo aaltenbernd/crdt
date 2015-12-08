@@ -66,7 +66,8 @@ def receive_thread():
 							message_id = data['message_id'][0],
 							author = data['message_author'][0],
 							text = data['message_text'][0],
-							date = data['message_date'][0]
+							date = data['message_date'][0],
+							host_id = data['host_id'][0]
 						)
 					else:
 						print 'delete op already exist'	
