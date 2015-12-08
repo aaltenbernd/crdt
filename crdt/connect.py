@@ -31,6 +31,7 @@ def receive(request):
 def receive_thread():
 	# initial queue
 	queue = Queue.Queue()
+	delete = []
 
 	# running as long as parent process is running
 	while True:
@@ -55,26 +56,31 @@ def receive_thread():
 				if data['operation'][0] == 'increment':
 					user.userprofile.increment()
 					user.userprofile.save()
-					op.delete()
 				elif data['operation'][0] == 'add':
-					Message.objects.create(
-						message_id = data['message_id'][0],
-						author = data['message_author'][0],
-						text = data['message_text'][0],
-						date = data['message_date'][0]
-					)
-					op.delete()			
+					delete_op_exist = False
+					for mid in delete:
+						if mid == data['message_id'][0]:
+							delete_op_exist = True
+					if delete_op_exist == False:
+						Message.objects.create(
+							message_id = data['message_id'][0],
+							author = data['message_author'][0],
+							text = data['message_text'][0],
+							date = data['message_date'][0]
+						)		
 				elif data['operation'][0] == 'delete':
 					try:
 						message = Message.objects.get(message_id=data['message_id'][0])
 						message.delete()
-						op.delete()
+						
 					except ObjectDoesNotExist:
 						print 'message dont exist'
+						print 'put op to delete list'
+						delete.append(data['message_id'][0])
 						time.sleep(2)
 						pass
 
-				
+				op.delete()
 
 			# exception occurs if number don't exist
 			# check if operation is add 
