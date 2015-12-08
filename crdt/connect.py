@@ -95,19 +95,20 @@ def send_thread(node):
 			# if no error occurs, delete operation 
 			# else sleep for a while and try again
 			
-			URL = str(node) + "/receive/"
-
-			client = requests.session()
-			client.get(URL)
-			csrftoken = client.cookies['csrftoken']
 			
-			data = eval(str(op.data))
-			data['csrfmiddlewaretoken'] = csrftoken
-
-			cookies = dict(client.cookies)
 
 			print "Outgoing: " + str(op)
 			try:
+				URL = str(node) + "/receive/"
+
+				client = requests.session()
+				client.get(URL)
+				csrftoken = client.cookies['csrftoken']
+			
+				data = eval(str(op.data))
+				data['csrfmiddlewaretoken'] = csrftoken
+				cookies = dict(client.cookies)
+
 				r = requests.post(URL, data = data, timeout=5, cookies=cookies)
 				op.delete()
 			except requests.exceptions.RequestException:
