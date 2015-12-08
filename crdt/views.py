@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from .models import Node, OutgoingOperation, Message
 from .forms import MessageForm, LoginForm
 import ast
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt
 
 # POST REQUEST : 
 #   1. get form input
@@ -13,7 +13,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 #   3. create new number with given content in form
 #   4. call broadcast with "add" operation and number title
 # ELSE : order numbers by date and create form
-@ensure_csrf_cookie
+@csrf_exempt
 def index(request):
     if not request.user.is_authenticated():
         return redirect('login')
@@ -49,7 +49,7 @@ def index(request):
         
     return render(request, 'index.html', {'messages': messages, 'form': form})
 
-@ensure_csrf_cookie
+@csrf_exempt
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
