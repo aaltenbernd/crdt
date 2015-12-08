@@ -30,8 +30,7 @@
                         <button class="btn btn-default" type="submit" value="Submit">
                             Logout
                         </button>
-                    </a>
-                                                  
+                    </a>                                                  
                 </div>
                 <form action="{% url 'index' %}" method="post">
                     {% csrf_token %} 
@@ -42,7 +41,7 @@
                     {% endfor %} {% endif %}                    
                     <div class="coll-xs-12">
                         <div class="well well-sm">
-                            {{ form.user_to }}</br>
+                            {{ form.to }}</br>
                             {{ form.text }}</br>
                             <button class="btn btn-default" type="submit" value="Submit">
                                 Send

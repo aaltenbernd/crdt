@@ -6,13 +6,14 @@ from django.contrib.auth import authenticate
 from .models import Message
 
 class MessageForm(forms.Form):
-	reader = forms.CharField(required=False, widget=forms.TextInput(
+	to = forms.CharField(required=False, widget=forms.TextInput(
 		attrs={'class': 'form-control', 'placeholder': 'myself', 'readonly':'readonly'}))
 	text = forms.CharField(required=False, widget=forms.Textarea(
         attrs={'class': 'form-control text-input', 'placeholder': 'Message', 'rows': '3'}))
 
 	def clean(self):
 		text = self.cleaned_data['text']
+		to = self.cleaned_data['to']
 
 		if len(text) == 0:
 			self._errors['text_empty'] = "No empty messages allowed"
@@ -20,7 +21,7 @@ class MessageForm(forms.Form):
 		if len(text) > 320:
 			self._errors['text_length'] = "The text exceeds maximum length of 320 characters"
 
-		return text
+		return text, to
 
 class LoginForm(forms.Form):
 	username = forms.CharField(label='Username', widget=forms.TextInput(attrs={'class': "form-control"}),required=False)
