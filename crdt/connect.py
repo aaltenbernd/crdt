@@ -74,10 +74,11 @@ def receive_thread():
 				elif data['operation'][0] == 'delete':
 					message_exist = False
 					for message in Message.objects.filter(message_id=data['message_id'][0]):
+						print message
 						if message.host_id == data['host_id']:
 							message_exist = True
 							message.delete()
-					if message_exist: 
+					if not message_exist: 
 						print 'message dont exist'
 						print 'put op to delete list'
 						delete.append(data['message_id'][0])
