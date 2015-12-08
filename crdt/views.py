@@ -12,6 +12,7 @@ import ast
 #   3. create new number with given content in form
 #   4. call broadcast with "add" operation and number title
 # ELSE : order numbers by date and create form
+@ensure_csrf_cookie
 def index(request):
     if not request.user.is_authenticated():
         return redirect('login')
@@ -47,6 +48,7 @@ def index(request):
         
     return render(request, 'index.html', {'messages': messages, 'form': form})
 
+@ensure_csrf_cookie
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -59,6 +61,8 @@ def login_view(request):
             user = authenticate(username=username, password=password)
 
             login(request,user)
+
+            form = LoginForm() 
 
             return redirect('index')
        
