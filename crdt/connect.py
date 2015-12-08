@@ -54,17 +54,23 @@ def receive_thread():
 				if data['operation'][0] == 'increment':
 					user.userprofile.increment()
 					user.userprofile.save()
+					op.delete(
 				elif data['operation'][0] == 'add':
 					Message.objects.create(
 						message_id = data['message_id'][0],
 						author = data['message_author'][0],
 						text = data['message_text'][0],
 						date = data['message_date'][0]
-					) 
+					)
+					op.delete(
 				elif data['operation'][0] == 'delete':
-					for message in Message.objects.filter(message_id=data['message_id'][0]):
+					try:
+						message = Message.objects.get(message_id=data['message_id'][0])
 						message.delete()
-				op.delete()
+					except ObjectDoesNotExist:
+						print 'message dont exist'
+						time.sleep(2)
+						pass
 
 			# exception occurs if number don't exist
 			# check if operation is add 
