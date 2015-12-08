@@ -41,9 +41,10 @@ def receive_thread():
 		# work of the queue
 		while queue.empty() == False:
 			op = queue.get()
-			print "Incoming: " + str(op.data['operation'][0])
 
 			data = eval(op.data)
+
+			print "Incoming: " + str(data['operation'][0])
 
 			# get number by given name
 			# check which operation and execute operation
@@ -106,7 +107,7 @@ def send_thread(node):
 			
 			
 
-			print "Outgoing: " + str(op.data['operation'])
+			
 
 			try:
 				URL = str(node) + "/receive/"
@@ -116,6 +117,7 @@ def send_thread(node):
 				csrftoken = client.cookies['csrftoken']
 			
 				data = eval(str(op.data))
+				print "Outgoing: " + str(data['operation'])
 				data['csrfmiddlewaretoken'] = csrftoken
 				cookies = dict(client.cookies)
 
