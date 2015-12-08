@@ -45,7 +45,7 @@ def receive_thread():
 
 			data = eval(op.data)
 
-			print "Incoming: " + str(data['operation'][0])
+			print "Incoming: " + str(data['operation'][0]) + " from " + str(data['host_id'][0])
 
 			# get number by given name
 			# check which operation and execute operation

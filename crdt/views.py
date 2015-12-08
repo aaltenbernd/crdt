@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from .models import Node, OutgoingOperation, Message
 from .forms import MessageForm, LoginForm
 
+HOST = Node.objects.filter(n_self=True)[0]
+
 # POST REQUEST : 
 #   1. get form input
 #   2. check form
@@ -30,9 +32,10 @@ def index(request):
             user.userprofile.increment()
             user.userprofile.save()
 
-            broadcast('increment', user.username, {})
-
             data = {}
+
+            broadcast('increment', user.username, data)
+
             data['message_id'] = message.message_id
             data['message_author'] = message.author
             data['message_text'] = message.text
@@ -106,6 +109,7 @@ def delete_all(request):
 def broadcast(operation, username, data):
     data['operation'] = operation
     data['username'] = username
+    data['host_id'] = HOST.n_id
     for node in Node.objects.filter(n_self=False):
         op = OutgoingOperation()
         op.data = str(data)
