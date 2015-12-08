@@ -40,6 +40,8 @@ def index(request):
 
             broadcast('add', user.username, data)
 
+            return redirect('index')
+
     form = MessageForm()
         
     messages = Message.objects.order_by('-date')
