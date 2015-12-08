@@ -77,7 +77,7 @@ def receive_thread():
 						if message.host_id == data['host_id']:
 							message_exist = True
 							message.delete()
-					if not message_exist: 
+					if message_exist: 
 						print 'message dont exist'
 						print 'put op to delete list'
 						delete.append(data['message_id'][0])
