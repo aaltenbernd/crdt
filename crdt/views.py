@@ -85,7 +85,10 @@ def delete(request):
     except(IndexError, ValueError):
         return redirect('index')
 
-    #broadcast('delete', number.title)
+    data = {}
+    data['message_id'] = message.message_id
+
+    broadcast('delete', data)
 
     message.delete()    
 

@@ -9,7 +9,7 @@ class MessageForm(forms.Form):
 	to = forms.CharField(required=False, widget=forms.TextInput(
 		attrs={'class': 'form-control', 'placeholder': 'myself', 'readonly':'readonly'}))
 	text = forms.CharField(required=False, widget=forms.Textarea(
-        attrs={'class': 'form-control text-input', 'placeholder': 'Message', 'rows': '3'}))
+        attrs={'class': 'form-control text-input', 'placeholder': 'Message', 'rows': '3', 'style':'resize:none;'}))
 
 	def clean(self):
 		text = self.cleaned_data['text']

@@ -55,12 +55,6 @@ def receive_thread():
 					user.userprofile.increment()
 					user.userprofile.save()
 				elif data['operation'][0] == 'add':
-					message_list = Message.objects.filter(message_id=data['message_id'][0])
-					if message_list is not None:
-						for message in message_list:
-							message.message_id = message.message_id + 1
-							message.save()
-
 					Message.objects.create(
 						message_id = data['message_id'][0],
 						author = data['message_author'][0],
