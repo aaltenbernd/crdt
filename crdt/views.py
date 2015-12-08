@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from .models import Node, OutgoingOperation, Message
 from .forms import MessageForm, LoginForm
 import ast
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 # POST REQUEST : 
 #   1. get form input
