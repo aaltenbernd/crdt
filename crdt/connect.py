@@ -100,7 +100,6 @@ def send_thread(node):
 			client = requests.session()
 			client.get(URL)
 			csrftoken = client.cookies['csrftoken']
-
 			
 			data = eval(str(op.data))
 			data['csrfmiddlewaretoken'] = csrftoken
