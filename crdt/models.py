@@ -39,6 +39,7 @@ class Message(models.Model):
 	text = models.CharField(max_length=320)
 	date = models.DateTimeField(default=timezone.now)
 	author = models.CharField(max_length=10, default="myself")
+	host_id = models.IntegerField()
 	#reader = models.CharField(max_length=10)
 
 	def __str__(self):

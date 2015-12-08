@@ -45,7 +45,7 @@ def receive_thread():
 
 			data = eval(op.data)
 
-			print "Incoming: " + str(data['operation'][0]) + " from " + str(data['host_id'][0])
+			print "Incoming: " + str(data['operation'][0])
 
 			# get number by given name
 			# check which operation and execute operation
@@ -71,16 +71,15 @@ def receive_thread():
 					else:
 						print 'delete op already exist'	
 				elif data['operation'][0] == 'delete':
-					try:
-						message = Message.objects.get(message_id=data['message_id'][0])
-						message.delete()
-						
-					except ObjectDoesNotExist:
+					message_exist = False
+					for message in Message.objects.filter(message_id=data['message_id'][0]):
+						if message.host_id == data['host_id']:
+							message_exist = True
+							message.delete()
+					if not message_exist: 
 						print 'message dont exist'
 						print 'put op to delete list'
 						delete.append(data['message_id'][0])
-						time.sleep(2)
-						pass
 
 				op.delete()
 

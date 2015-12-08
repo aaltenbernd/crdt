@@ -25,7 +25,7 @@ def index(request):
             text = request.POST.get('text')
             message_id = request.user.userprofile.counter
 
-            message = Message.objects.create(text=text, message_id=message_id)
+            message = Message.objects.create(text=text, message_id=message_id, host_id=HOST.n_id)
 
             user = request.user
 
@@ -40,6 +40,7 @@ def index(request):
             data['message_author'] = message.author
             data['message_text'] = message.text
             data['message_date'] = str(message.date)
+            data['host_id'] = message.host_id
 
             broadcast('add', user.username, data)
 
@@ -90,6 +91,7 @@ def delete(request):
 
     data = {}
     data['message_id'] = message.message_id
+    data['host_id'] = message.host_id
 
     broadcast('delete', request.user.username, data)
 
@@ -109,7 +111,6 @@ def delete_all(request):
 def broadcast(operation, username, data):
     data['operation'] = operation
     data['username'] = username
-    data['host_id'] = HOST.n_id
     for node in Node.objects.filter(n_self=False):
         op = OutgoingOperation()
         op.data = str(data)
