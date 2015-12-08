@@ -73,7 +73,7 @@ def receive_thread():
 						print 'delete op already exist'	
 				elif data['operation'][0] == 'delete':
 					try:
-						message = Message.objects.get(message_id=data['message_id'][0], data['host_id'][0])
+						message = Message.objects.get(message_id=data['message_id'][0], host_id=data['host_id'][0])
 						message.delete()
 					except ObjectDoesNotExist:
 						print 'message dont exist'
