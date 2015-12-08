@@ -59,6 +59,8 @@ def login_view(request):
             user = authenticate(username=username, password=password)
 
             login(request,user)
+
+            return redirect('index')
        
     form = LoginForm() 
     
