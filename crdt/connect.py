@@ -61,6 +61,9 @@ def receive_thread():
 						text = data['message_text'][0],
 						date = data['message_date'][0]
 					) 
+				elif data['operation'][0] == 'delete':
+					for message in Message.objects.filter(message_id=data['message_id'][0]):
+						message.delete()
 				op.delete()
 
 			# exception occurs if number don't exist
