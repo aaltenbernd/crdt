@@ -12,6 +12,10 @@ def createUser(username, password):
 	user.userprofile = profile
 	return
 
+def createNode(n_self, n_id, port):
+	Node.objects.create(n_self=n_self, n_id=n_id, port=port)
+	return
+
 # each number saves a title, a value and a date
 # increment / decrement are commutative operations
 # which can be executed without consider the order
@@ -44,7 +48,9 @@ class Message(models.Model):
 # the full address of the node is given by str(Node) = http://127.0.0.1:PORT
 # the operations have to be send to the HOST
 class Node(models.Model):
-	port = models.IntegerField(default="8000")
+	n_self = models.BooleanField()
+	n_id = models.IntegerField()
+	port = models.IntegerField()
 	open_ops = models.ManyToManyField('OutgoingOperation', related_name='open_operation', blank=True)
 
 	def __str__(self):

@@ -115,11 +115,6 @@ def send_thread(node):
 			# receiver can assign operation to number by given title (but title is not unique right now)
 			# if no error occurs, delete operation 
 			# else sleep for a while and try again
-			
-			
-
-			
-
 			try:
 				URL = str(node) + "/receive/"
 

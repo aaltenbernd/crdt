@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
 		# start one thread for each node of the cluster
 		# each thread sends operations to one node of the cluster
-		for node in Node.objects.all():
+		for node in Node.objects.filter(n_self=False):
 			print 'Starting thread - handling this host: ' + str(node)
 			thread.start_new_thread(send_thread, (node, ))
 
