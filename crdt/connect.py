@@ -67,7 +67,9 @@ def receive_thread():
 							author = data['message_author'][0],
 							text = data['message_text'][0],
 							date = data['message_date'][0]
-						)		
+						)
+					else:
+						print 'delete op already exist'	
 				elif data['operation'][0] == 'delete':
 					try:
 						message = Message.objects.get(message_id=data['message_id'][0])
