@@ -59,13 +59,10 @@ def login_view(request):
             user = authenticate(username=username, password=password)
 
             login(request,user)
-
-            return redirect('index')
-        else:
-            return render(request, 'login.html', {'form': form})
-    else:
-        form = LoginForm()
-        return render(request, 'login.html', {'form': form})
+       
+    form = LoginForm() 
+    
+    return render(request, 'login.html', {'form': form})
 
 def logout_view(request):
     logout(request)
