@@ -106,7 +106,7 @@ def delete_all(request):
 def broadcast(operation, username, data):
     data['operation'] = operation
     data['username'] = username
-    for node in Node.objects.filer(n_self=False):
+    for node in Node.objects.filter(n_self=False):
         op = OutgoingOperation()
         op.data = str(data)
         op.save()
