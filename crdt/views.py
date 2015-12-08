@@ -88,7 +88,7 @@ def delete(request):
     data = {}
     data['message_id'] = message.message_id
 
-    broadcast('delete', data)
+    broadcast('delete', request.user.username, data)
 
     message.delete()    
 
