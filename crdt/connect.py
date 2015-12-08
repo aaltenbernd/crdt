@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Node, IncomingOperation, Message
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.template.context_processors import csrf
 
 import requests
 import thread
@@ -13,7 +14,7 @@ import time
 #	1. get content operation name and number title
 #	2. save incoming operation
 # ELSE : do nothing
-@csrf_exempt
+#@csrf_exempt
 def receive(request):
 	if request.method == 'POST':
 		data = dict(request.POST.iterlists())
@@ -85,7 +86,7 @@ def send_thread(node):
 		# work off the queue
 		while queue.empty() == False:
 			op = queue.get()
-			print "Outgoing: " + str(op)
+		
 
 			# sends http post request to given host
 			# http://localHost:PORT/receive/ is linked in crdt/urls.py to receive method in connect.py
@@ -93,11 +94,22 @@ def send_thread(node):
 			# receiver can assign operation to number by given title (but title is not unique right now)
 			# if no error occurs, delete operation 
 			# else sleep for a while and try again
+			
+			URL = str(node) + "/receive/"
 
+			client = requests.session()
+			client.get(URL)
+			csrftoken = client.cookies['csrftoken']
+
+			
 			data = eval(str(op.data))
+			data['csrfmiddlewaretoken'] = csrftoken
 
+			cookies = dict(client.cookies)
+
+			print "Outgoing: " + str(op)
 			try:
-				r = requests.post(str(node) + "/receive/", data = data, timeout=5)
+				r = requests.post(URL, data = data, timeout=5, cookies=cookies)
 				op.delete()
 			except requests.exceptions.RequestException:
 				time.sleep(2)
