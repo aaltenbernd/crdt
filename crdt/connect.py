@@ -75,6 +75,7 @@ def receive_thread():
 					message_exist = False
 					for message in Message.objects.filter(message_id=data['message_id'][0]):
 						print message
+						print str(data['host_id'][0])
 						if message.host_id == data['host_id'][0]:
 							message_exist = True
 							message.delete()
