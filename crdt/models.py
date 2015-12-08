@@ -43,7 +43,7 @@ class Message(models.Model):
 	#reader = models.CharField(max_length=10)
 
 	def __str__(self):
-		return self.text + ' (' + self.from_user + ')'
+		return 'ID: ' + self.id + ' | HOST_ID: ' + self.host_id
 
 # each node saves the port and the open operations
 # the full address of the node is given by str(Node) = http://127.0.0.1:PORT
