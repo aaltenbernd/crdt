@@ -41,7 +41,7 @@ def receive_thread():
 		# work of the queue
 		while queue.empty() == False:
 			op = queue.get()
-			print "Incoming: " + str(op)
+			print "Incoming: " + str(op.data['operation'][0])
 
 			data = eval(op.data)
 
@@ -106,7 +106,8 @@ def send_thread(node):
 			
 			
 
-			print "Outgoing: " + str(op)
+			print "Outgoing: " + str(op.data['operation'])
+
 			try:
 				URL = str(node) + "/receive/"
 
