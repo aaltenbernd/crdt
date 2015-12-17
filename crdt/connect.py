@@ -16,6 +16,7 @@ def receive_thread():
 	queue = Queue.Queue()
 	
 	# list of messages, goint to delete
+	# in case a add comes in with same message
 	goint_to_delete = []
 
 	# running as long as parent process is running
@@ -28,42 +29,39 @@ def receive_thread():
 		while queue.empty() == False:
 			op = queue.get()
 
+			# get message dict
 			data = eval(op.data)
 
+			# get csrftoken, operation, username token of the message dict
 			try:
-				csrf = data.pop('csrfmiddlewaretoken')
-			except:
-				print 'csrftoken error'
-				op.delete()
-				continue
-
-			try:	
+				csrftoken = data.pop('csrfmiddlewaretoken')
 				operation = data.pop('operation')
-			except:
-				print 'operation error'
-				op.delete()
-				continue
-
-			try:
 				username = data.pop('username')
 			except:
-				print 'user error'
+				print 'csrftoken, operation or username error'
 				op.delete()
 				continue
 
 			print "Incoming: " + operation
 
 			try:
+				# get user
 				user = User.objects.get(username=username)
 
+				# check which operation
 				if operation == 'increment':
+					# increment distributed counter
 					user.userprofile.increment()
 					user.userprofile.save()
 				elif operation == 'add':
+					# check if message is already in "going_to_delete" list
+					# check by global_id and host_id => unique
 					delete_op_exist = False
 					for message in goint_to_delete:
 						if message['global_id'] == data['global_id'] and message['host_id'] == data['host_id']:
 							delete_op_exist = True
+
+					# add message
 					if delete_op_exist == False:
 						message = Message(**data)
 						message.save()
@@ -72,15 +70,19 @@ def receive_thread():
 						print 'delete op already exist'	
 				elif operation == 'delete':
 					try:
+						# get message and delete it
 						message = Message.objects.get(**data)
 						message.delete()
 					except ObjectDoesNotExist:
 						print 'message dont exist'
 						print 'put op to delete list'
+						# put message to "going_to_delete" list in case message don't exist
 						goint_to_delete.append(data)
 				op.delete()
 
 			except ObjectDoesNotExist:
+				# maybe user don't exist right now
+				# take another operation and try again later
 				print 'user dont exist'
 				time.sleep(2)
 				pass
@@ -102,18 +104,22 @@ def send_thread(node):
 			op = queue.get()
 
 			try:
+				# get message dict
+				data = eval(str(op.data))
+
+				print "Outgoing: " + str(data['operation'])
+
+				# set up csrftoken, because django needs it
 				URL = str(node) + "/receive/"
 
 				client = requests.session()
 				client.get(URL)
 				csrftoken = client.cookies['csrftoken']
-			
-				data = eval(str(op.data))
 
-				print "Outgoing: " + str(data['operation'])
 				data['csrfmiddlewaretoken'] = csrftoken
 				cookies = dict(client.cookies)
 
+				# send post request and delete operation
 				r = requests.post(URL, data = data, timeout=5, cookies=cookies)
 				op.delete()
 			except requests.exceptions.RequestException:

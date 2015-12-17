@@ -6,8 +6,14 @@ from .models import Node, OutgoingOperation, Message, IncomingOperation
 from .forms import MessageForm, LoginForm
 from django.forms import model_to_dict
 
+# running host
 HOST = Node.objects.filter(n_self=True)[0]
 
+# index page and add operation
+# create new message
+# get user 
+# increment counter -> call broadcast -> save outgoing operation
+# send message -> call broadcast -> save outgoing operation 
 def index(request):
     if not request.user.is_authenticated():
         return redirect('login')
@@ -39,6 +45,7 @@ def index(request):
         
     return render(request, 'index.html', {'messages': messages, 'form': form})
 
+# login for user session
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -62,30 +69,43 @@ def login_view(request):
     
     return render(request, 'login.html', {'form': form})
 
+# logout for user session
 def logout_view(request):
     logout(request)
     return redirect('index')
 
+# delete operation 
+# pick message
+# call broadcast -> save outgoing operations
+# delete it
 def delete(request):
+    if not request.user.is_authenticated():
+        return redirect('login')
+    
     message_id = request.GET.get('id', '')
 
     try:
         message = Message.objects.filter(id=message_id)[0]
     except(IndexError, ValueError):
         return redirect('index')
-        
+
     broadcast(message.to_dict(request.user.username, 'delete'))
 
     message.delete()    
 
     return redirect('index')
 
+# just for cleaning up (DEBUG)
 def delete_all(request):
     for message in Message.objects.all():
         message.delete()
 
     return redirect('index')
 
+# save outgoing operation for each node
+# what happens if django app crashes? 
+# some nodes won't receive operation?
+# maybe need to save which ops have been saved for which nodes :S
 def broadcast(data):
     for node in Node.objects.filter(n_self=False):
         op = OutgoingOperation()
@@ -94,6 +114,8 @@ def broadcast(data):
         node.open_ops.add(op)
         node.save()
 
+# handle operations send by send_thread on other hosts
+# save incoming operation
 def receive(request):
     if request.method == 'POST':
         data = request.POST.dict()
