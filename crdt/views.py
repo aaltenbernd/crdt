@@ -127,6 +127,8 @@ def receive(request):
     if request.method == 'POST':
         data = request.POST.dict()
 
+        print "\033[91m[RECEIVED] " + data['operation']
+
         csrftoken = data.pop('csrfmiddlewaretoken')
         operation = data.pop('operation')
         username = data.pop('username')
