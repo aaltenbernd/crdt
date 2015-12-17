@@ -17,6 +17,7 @@ def receive_thread():
 	
 	# list of messages, goint to delete
 	# in case a add comes in with same message
+	# not persistent right now ...
 	goint_to_delete = []
 
 	# running as long as parent process is running

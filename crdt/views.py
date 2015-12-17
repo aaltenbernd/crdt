@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Node, OutgoingOperation, Message, IncomingOperation
-from .forms import MessageForm, LoginForm
 from django.forms import model_to_dict
+
+from .models import Node, Message, OutgoingOperation, IncomingOperation
+from .forms import MessageForm, LoginForm
 
 # running host
 HOST = Node.objects.filter(n_self=True)[0]
