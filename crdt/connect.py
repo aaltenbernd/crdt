@@ -77,7 +77,7 @@ def receive_thread():
 					except ObjectDoesNotExist:
 						print 'message dont exist'
 						print 'put op to delete list'
-						delete.append(data)
+						goint_to_delete.append(data)
 				op.delete()
 
 			except ObjectDoesNotExist:
@@ -118,4 +118,4 @@ def send_thread(node):
 				op.delete()
 			except requests.exceptions.RequestException:
 				time.sleep(2)
-				print 'fail... trying again'
+				print 'fail... trying again: ' + "Outgoing: " + str(data['operation'])
