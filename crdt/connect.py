@@ -62,7 +62,7 @@ def receive_thread():
 				elif operation == 'add':
 					delete_op_exist = False
 					for message in goint_to_delete:
-						if message == data:
+						if message['global_id'] == data['global_id'] and message['host_id'] == data['host_id']:
 							delete_op_exist = True
 					if delete_op_exist == False:
 						message = Message(**data)
