@@ -159,23 +159,24 @@ def send_thread(host):
 
             print "\033[91m[THREAD " + str(host.host_id) + "] " + data['operation'] + " to " + str(host)
 
-            try:
-                # set up csrftoken, because django needs it
-                URL = "http://" + str(host) + "/receive/"
+            while True:
+                try:
+                    # set up csrftoken, because django needs it
+                    URL = "http://" + str(host) + "/receive/"
 
-                client = requests.session()
-                client.get(URL)
-                csrftoken = client.cookies['csrftoken']
+                    client = requests.session()
+                    client.get(URL)
+                    csrftoken = client.cookies['csrftoken']
 
-                data['csrfmiddlewaretoken'] = csrftoken
-                cookies = dict(client.cookies)
+                    data['csrfmiddlewaretoken'] = csrftoken
+                    cookies = dict(client.cookies)
 
-                # send post request and delete operations
-                r = requests.post(URL, data = data, timeout=5, cookies=cookies)
-
-            except requests.exceptions.RequestException:
-                time.sleep(2)
-                print 'fail... trying again'
+                    # send post request and delete operations
+                    r = requests.post(URL, data = data, timeout=5, cookies=cookies)
+                    break
+                except requests.exceptions.RequestException:
+                    time.sleep(2)
+                    print 'fail... trying again'
 
 for host in other_hosts:
     thread.start_new_thread(send_thread, (host, ))
