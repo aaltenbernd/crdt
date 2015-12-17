@@ -118,4 +118,4 @@ def send_thread(node):
 				op.delete()
 			except requests.exceptions.RequestException:
 				time.sleep(2)
-				print 'fail... trying again: ' + "Outgoing: " + str(data['operation'])
+				print 'fail... trying again'
