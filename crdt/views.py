@@ -159,7 +159,7 @@ def send_thread(host_id):
 
             try:
                 # set up csrftoken, because django needs it
-                URL = "http://" str(host) + "/receive/"
+                URL = "http://" + str(host) + "/receive/"
 
                 client = requests.session()
                 client.get(URL)
