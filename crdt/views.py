@@ -150,14 +150,14 @@ def receive(request):
         return redirect('index')
 
 # sending thread
-def send_thread(host_id):
+def send_thread(host):
     while True:
-        if queue[host_id].empty():
+        if queue[host.host_id].empty():
             time.sleep(1)
         else:
-            data = queue[host_id].get()
+            data = queue[host.host_id].get()
 
-            print "\033[91m[THREAD " + str(host_id) + "] " + data['operation']
+            print "\033[91m[THREAD " + str(host.host_id) + "] " + data['operation'] + " to " + str(host)
 
             try:
                 # set up csrftoken, because django needs it
@@ -170,7 +170,7 @@ def send_thread(host_id):
                 data['csrfmiddlewaretoken'] = csrftoken
                 cookies = dict(client.cookies)
 
-                # send post request and delete operation
+                # send post request and delete operations
                 r = requests.post(URL, data = data, timeout=5, cookies=cookies)
 
             except requests.exceptions.RequestException:
@@ -178,4 +178,4 @@ def send_thread(host_id):
                 print 'fail... trying again'
 
 for host in other_hosts:
-    thread.start_new_thread(send_thread, (host.host_id, ))
+    thread.start_new_thread(send_thread, (host, ))
