@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.core.management import call_command
 
-from crdt.models import createUser, createNode
+from crdt.models import createUser, createHost
 
 import thread
 
@@ -20,9 +20,9 @@ class Command(BaseCommand):
 		call_command("makemigrations")
 		call_command("migrate")
 
-		createNode(True, options['id_A'], options['port_A'])
+		createHost(True, options['id_A'], options['port_A'])
 		print 'SELF: Created Node with id = ' + str(options['id_A']) + ' and port = ' + str(options['port_A'])
-		createNode(False, options['id_A'], options['port_B'])
+		createHost(False, options['id_A'], options['port_B'])
 		print 'OTHER: Created Node with id = ' + str(options['id_B']) + ' and port = ' + str(options['port_B'])
 		createUser(options['test_user'], options['test_pass'])
 		print 'Created User with username = ' + options['test_user'] + ' and password = ' + options['test_pass']

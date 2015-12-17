@@ -52,12 +52,12 @@
                 {% if messages %} {% for message in messages %}
                 </br>
                 <div class="well well-sm">
-                    <strong>ID: {{ message.global_id }} - HOST ID: {{ message.host_id }}</strong></br>
+                    <strong>UUID: {{ message.uuid }} - HOST ID: {{ message.host_id }}</strong></br>
                     <p>From : {{ message.author }} - {{ message.date }}</p>
                     <div class="well well-sm">
                         {{ message.text }}
                     </div>                    
-                    <a href="{% url 'delete' %}?id={{ message.id }}"
+                    <a href="{% url 'delete' %}?id={{ message.uuid }}"
                         <button class="btn btn-default" type="submit" value="Submit">
                             Delete
                         </button>

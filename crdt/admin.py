@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import UserProfile, IncomingOperation, OutgoingOperation
+from .models import UserProfile, AddMessage, DeleteMessage
 
 admin.site.register(UserProfile)
-admin.site.register(IncomingOperation)
-admin.site.register(OutgoingOperation)
+admin.site.register(AddMessage)
+admin.site.register(DeleteMessage)

@@ -4,9 +4,9 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate
 
-from .models import Message
+from .models import AddMessage
 
-class MessageForm(forms.Form):
+class AddMessageForm(forms.Form):
 	to = forms.CharField(required=False, widget=forms.TextInput(
 		attrs={'class': 'form-control', 'placeholder': 'myself', 'readonly':'readonly'}))
 	text = forms.CharField(required=False, widget=forms.Textarea(

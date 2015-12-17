@@ -4,11 +4,22 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.forms import model_to_dict
 
-from .models import Node, Message, OutgoingOperation, IncomingOperation
-from .forms import MessageForm, LoginForm
+from .models import Host, AddMessage, DeleteMessage
+from .forms import AddMessageForm, LoginForm
 
-# running host
-HOST = Node.objects.filter(n_self=True)[0]
+import Queue
+import thread
+import time
+import requests
+
+# filter running host and other hosts
+running_host = Host.objects.filter(host_self=True)[0]
+other_hosts = Host.objects.filter(host_self=False)
+
+# init queues
+queue = {}
+for host in other_hosts:
+    queue[host.host_id] = Queue.Queue()
 
 # index page and add operation
 # create new message
@@ -21,29 +32,32 @@ def index(request):
 
     if request.method == 'POST':
 
-        form = MessageForm(request.POST)
+        form = AddMessageForm(request.POST)
 
         if form.is_valid():
             text = request.POST.get('text')
-            global_id = request.user.userprofile.counter
 
-            message = Message.objects.create(text=text, global_id=global_id, host_id=HOST.n_id)
+            message = AddMessage.objects.create(text=text, host_id=running_host.host_id)
 
             user = request.user
 
             user.userprofile.increment()
             user.userprofile.save()
 
-            broadcast({'operation' : 'increment', 'username' : user.username})
-
-            broadcast(message.to_dict(user.username, 'add'))
+            for host in other_hosts:
+                queue[host.host_id].put({'operation' : 'increment', 'username' : user.username})
+                queue[host.host_id].put(message.to_dict(user.username, 'add'))
 
             return redirect('index')
 
-    form = MessageForm()
+    form = AddMessageForm()
         
-    messages = Message.objects.order_by('-date')
-        
+    delete_messages = DeleteMessage.objects.all()
+
+    messages = AddMessage.objects.all()
+    for delete_message in DeleteMessage.objects.all():
+        messages = messages.exclude(uuid=delete_message.uuid)
+
     return render(request, 'index.html', {'messages': messages, 'form': form})
 
 # login for user session
@@ -83,37 +97,29 @@ def delete(request):
     if not request.user.is_authenticated():
         return redirect('login')
     
-    message_id = request.GET.get('id', '')
+    uuid = request.GET.get('id', '')
 
     try:
-        message = Message.objects.filter(id=message_id)[0]
+        add_message = AddMessage.objects.filter(uuid=uuid)[0]
     except(IndexError, ValueError):
         return redirect('index')
 
-    broadcast(message.to_dict(request.user.username, 'delete'))
+    delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id)
 
-    message.delete()    
+    for host in other_hosts:
+        queue[host.host_id].put(delete_message.to_dict(request.user.username, 'delete'))   
 
     return redirect('index')
 
 # just for cleaning up (DEBUG)
 def delete_all(request):
-    for message in Message.objects.all():
+    for message in AddMessage.objects.all():
+        message.delete()
+
+    for message in DeleteMessage.objects.all():
         message.delete()
 
     return redirect('index')
-
-# save outgoing operation for each node
-# what happens if django app crashes? 
-# some nodes won't receive operation?
-# maybe need to save which ops have been saved for which nodes :S
-def broadcast(data):
-    for node in Node.objects.filter(n_self=False):
-        op = OutgoingOperation()
-        op.data = str(data)
-        op.save()
-        node.open_ops.add(op)
-        node.save()
 
 # handle operations send by send_thread on other hosts
 # save incoming operation
@@ -121,10 +127,53 @@ def receive(request):
     if request.method == 'POST':
         data = request.POST.dict()
 
-        op = IncomingOperation()
-        op.data = str(data)
-        op.save()
-        
+        csrftoken = data.pop('csrfmiddlewaretoken')
+        operation = data.pop('operation')
+        username = data.pop('username')
+
+        user = User.objects.get(username=username)
+
+        if operation == 'increment':
+            user.userprofile.increment()
+            user.userprofile.save()
+        if operation == 'add':
+            add_message = AddMessage(**data)
+            add_message.save()
+        if operation == 'delete':
+            delete_message = DeleteMessage(**data)
+            delete_message.save()
+
         return redirect('index')
     else:   
         return redirect('index')
+
+# sending thread
+def send_thread(host_id):
+    while True:
+        if queue[host_id].empty():
+            time.sleep(1)
+        else:
+            data = queue[host_id].get()
+
+            print "\033[91m[THREAD " + str(host_id) + "] " + data['operation']
+
+            try:
+                # set up csrftoken, because django needs it
+                URL = str(host) + "/receive/"
+
+                client = requests.session()
+                client.get(URL)
+                csrftoken = client.cookies['csrftoken']
+
+                data['csrfmiddlewaretoken'] = csrftoken
+                cookies = dict(client.cookies)
+
+                # send post request and delete operation
+                r = requests.post(URL, data = data, timeout=5, cookies=cookies)
+
+            except requests.exceptions.RequestException:
+                time.sleep(2)
+                print 'fail... trying again'
+
+for host in other_hosts:
+    thread.start_new_thread(send_thread, (host.host_id, ))
