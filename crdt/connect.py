@@ -10,28 +10,13 @@ import thread
 import Queue
 import time
 
-# POST REQUEST : 
-#	1. get content operation name and number title
-#	2. save incoming operation
-# ELSE : do nothing
-#@csrf_exempt
-def receive(request):
-	if request.method == 'POST':
-		data = dict(request.POST.iterlists())
-
-		op = IncomingOperation()
-		op.data = str(data)
-		op.save()	
-
-		return redirect('index')
-	else:	
-		return redirect('index')
-
 # receiver thread handling incoming operations
 def receive_thread():
 	# initial queue
 	queue = Queue.Queue()
-	delete = []
+	
+	# list of messages, goint to delete
+	goint_to_delete = []
 
 	# running as long as parent process is running
 	while True:
@@ -45,46 +30,56 @@ def receive_thread():
 
 			data = eval(op.data)
 
-			print "Incoming: " + str(data['operation'][0])
-
-			# get number by given name
-			# check which operation and execute operation
-			# delete operation so it's only executed one time
 			try:
-				user = User.objects.get(username=data['username'][0])
+				csrf = data.pop('csrfmiddlewaretoken')
+			except:
+				print 'csrftoken error'
+				op.delete()
+				continue
 
-				if data['operation'][0] == 'increment':
+			try:	
+				operation = data.pop('operation')
+			except:
+				print 'operation error'
+				op.delete()
+				continue
+
+			try:
+				username = data.pop('username')
+			except:
+				print 'user error'
+				op.delete()
+				continue
+
+			print "Incoming: " + operation
+
+			try:
+				user = User.objects.get(username=username)
+
+				if operation == 'increment':
 					user.userprofile.increment()
 					user.userprofile.save()
-				elif data['operation'][0] == 'add':
+				elif operation == 'add':
 					delete_op_exist = False
-					for mid in delete:
-						if mid == data['message_id'][0]:
+					for message in goint_to_delete:
+						if message == data:
 							delete_op_exist = True
 					if delete_op_exist == False:
-						Message.objects.create(
-							message_id = data['message_id'][0],
-							author = data['message_author'][0],
-							text = data['message_text'][0],
-							date = data['message_date'][0],
-							host_id = data['host_id'][0]
-						)
+						message = Message(**data)
+						message.save()
+						pass
 					else:
 						print 'delete op already exist'	
-				elif data['operation'][0] == 'delete':
+				elif operation == 'delete':
 					try:
-						message = Message.objects.get(message_id=data['message_id'][0], host_id=data['host_id'][0])
+						message = Message.objects.get(**data)
 						message.delete()
 					except ObjectDoesNotExist:
 						print 'message dont exist'
 						print 'put op to delete list'
-						delete.append(data['message_id'][0])					
-
+						delete.append(data)
 				op.delete()
 
-			# exception occurs if number don't exist
-			# check if operation is add 
-			# else try again later
 			except ObjectDoesNotExist:
 				print 'user dont exist'
 				time.sleep(2)
@@ -105,14 +100,7 @@ def send_thread(node):
 		# work off the queue
 		while queue.empty() == False:
 			op = queue.get()
-		
 
-			# sends http post request to given host
-			# http://localHost:PORT/receive/ is linked in crdt/urls.py to receive method in connect.py
-			# request content is operation name and number title
-			# receiver can assign operation to number by given title (but title is not unique right now)
-			# if no error occurs, delete operation 
-			# else sleep for a while and try again
 			try:
 				URL = str(node) + "/receive/"
 
@@ -121,6 +109,7 @@ def send_thread(node):
 				csrftoken = client.cookies['csrftoken']
 			
 				data = eval(str(op.data))
+
 				print "Outgoing: " + str(data['operation'])
 				data['csrfmiddlewaretoken'] = csrftoken
 				cookies = dict(client.cookies)

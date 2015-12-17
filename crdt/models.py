@@ -6,21 +6,18 @@ import Queue
 # localHost
 HOSTNAME = "http://127.0.0.1"
 
+# used in python manage.py init
 def createUser(username, password):
 	user = User.objects.create_user(username=username, password=password)
 	profile = UserProfile.objects.create(user=user)
 	user.userprofile = profile
 	return
 
+# used in python manage.py init
 def createNode(n_self, n_id, port):
 	Node.objects.create(n_self=n_self, n_id=n_id, port=port)
 	return
 
-# each number saves a title, a value and a date
-# increment / decrement are commutative operations
-# which can be executed without consider the order
-# title is not unique right now
-# date saves the creationdate 
 class UserProfile(models.Model):
 	user = models.OneToOneField(User)
 	counter = models.IntegerField(default=0)
@@ -35,19 +32,30 @@ class UserProfile(models.Model):
 		self.counter = self.counter - 1
 
 class Message(models.Model):
-	message_id = models.IntegerField()
+	host_id = models.IntegerField()
+	global_id = models.IntegerField()
 	text = models.CharField(max_length=320)
 	date = models.DateTimeField(default=timezone.now)
 	author = models.CharField(max_length=10, default="myself")
-	host_id = models.IntegerField()
-	#reader = models.CharField(max_length=10)
 
 	def __str__(self):
-		return 'ID: ' + str(self.message_id) + ' | HOST_ID: ' + str(self.host_id)
+		return 'GLOBAL_ID: ' + str(self.global_id) + ' | HOST_ID: ' + str(self.host_id)
 
-# each node saves the port and the open operations
-# the full address of the node is given by str(Node) = http://127.0.0.1:PORT
-# the operations have to be send to the HOST
+	def to_dict(self, username, operation):
+		message_dict = {}
+
+		message_dict['global_id'] = self.global_id
+		message_dict['host_id'] = self.host_id
+		
+		if operation == 'add':
+			message_dict['author'] = self.author
+			message_dict['text'] = self.text
+			message_dict['date'] = str(self.date)
+		
+		message_dict['operation'] = operation
+		message_dict['username'] = username
+		return message_dict
+
 class Node(models.Model):
 	n_self = models.BooleanField()
 	n_id = models.IntegerField()
@@ -58,13 +66,13 @@ class Node(models.Model):
 		return HOSTNAME + ':' + str(self.port)
 
 class OutgoingOperation(models.Model):
-	data = models.CharField(max_length=400)
+	data = models.CharField(max_length=400, default="")
 
 	def __str__(self):
-		return "Operation: " + self.data
+		return "Outgoing: " + self.data
 
 class IncomingOperation(models.Model):
-	data = models.CharField(max_length=400)
+	data = models.CharField(max_length=400, default="")
 
 	def __str__(self):
 		return "Incoming: " + self.data

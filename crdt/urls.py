@@ -8,5 +8,5 @@ urlpatterns = [
     url(r'^logout$', views.logout_view, name='logout'),
     url(r'^delete_all$', views.delete_all, name='delete_all'),
     url(r'^delete$', views.delete, name='delete'),
-    url(r'^receive/', connect.receive, name='receive')
+    url(r'^receive/', views.receive, name='receive')
 ]

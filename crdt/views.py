@@ -2,17 +2,12 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Node, OutgoingOperation, Message
+from .models import Node, OutgoingOperation, Message, IncomingOperation
 from .forms import MessageForm, LoginForm
+from django.forms import model_to_dict
 
 HOST = Node.objects.filter(n_self=True)[0]
 
-# POST REQUEST : 
-#   1. get form input
-#   2. check form
-#   3. create new number with given content in form
-#   4. call broadcast with "add" operation and number title
-# ELSE : order numbers by date and create form
 def index(request):
     if not request.user.is_authenticated():
         return redirect('login')
@@ -23,26 +18,18 @@ def index(request):
 
         if form.is_valid():
             text = request.POST.get('text')
-            message_id = request.user.userprofile.counter
+            global_id = request.user.userprofile.counter
 
-            message = Message.objects.create(text=text, message_id=message_id, host_id=HOST.n_id)
+            message = Message.objects.create(text=text, global_id=global_id, host_id=HOST.n_id)
 
             user = request.user
 
             user.userprofile.increment()
             user.userprofile.save()
 
-            data = {}
+            broadcast({'operation' : 'increment', 'username' : user.username})
 
-            broadcast('increment', user.username, data)
-
-            data['message_id'] = message.message_id
-            data['message_author'] = message.author
-            data['message_text'] = message.text
-            data['message_date'] = str(message.date)
-            data['host_id'] = message.host_id
-
-            broadcast('add', user.username, data)
+            broadcast(message.to_dict(user.username, 'add'))
 
             return redirect('index')
 
@@ -79,8 +66,6 @@ def logout_view(request):
     logout(request)
     return redirect('index')
 
-# delete number with given id
-# call broadcast with "delete" operation and number title
 def delete(request):
     message_id = request.GET.get('id', '')
 
@@ -88,32 +73,35 @@ def delete(request):
         message = Message.objects.filter(id=message_id)[0]
     except(IndexError, ValueError):
         return redirect('index')
-
-    data = {}
-    data['message_id'] = message.message_id
-    data['host_id'] = message.host_id
-
-    broadcast('delete', request.user.username, data)
+        
+    broadcast(message.to_dict(request.user.username, 'delete'))
 
     message.delete()    
 
     return redirect('index')
 
-# delete all numbers saved one the currend host (not distributed)
 def delete_all(request):
     for message in Message.objects.all():
         message.delete()
 
     return redirect('index')
 
-# creates for all nodes in the cluster a new OutgointOperation with a given title and operation
-# NOTE : what happens when server crashes while creating open operation
-def broadcast(operation, username, data):
-    data['operation'] = operation
-    data['username'] = username
+def broadcast(data):
     for node in Node.objects.filter(n_self=False):
         op = OutgoingOperation()
         op.data = str(data)
         op.save()
         node.open_ops.add(op)
         node.save()
+
+def receive(request):
+    if request.method == 'POST':
+        data = request.POST.dict()
+
+        op = IncomingOperation()
+        op.data = str(data)
+        op.save()
+        
+        return redirect('index')
+    else:   
+        return redirect('index')
