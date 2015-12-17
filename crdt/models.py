@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 import uuid
 
 # localHost
-HOSTNAME = "http://127.0.0.1"
+HOSTNAME = "127.0.0.1"
 
 # used in python manage.py init
 # creates a user with given username and passwrd
