@@ -15,6 +15,7 @@ import requests
 # filter running host and other hosts
 running_host = Host.objects.filter(host_self=True)[0]
 other_hosts = Host.objects.filter(host_self=False)
+all_hosts = Host.objects.all()
 
 # init queues
 queue = {}
@@ -51,14 +52,31 @@ def index(request):
             return redirect('index')
 
     form = AddMessageForm()
-        
+
+    data = {'form': form, 'other_hosts': other_hosts, 'running_host': running_host.host_id}
+
+    return render(request, 'index.html', data)
+
+def show_messages(request):
+    if not request.user.is_authenticated():
+        return redirect('login')
+
+    active_host = request.GET.get('id', '')
+
+    if not active_host:
+        active_host = running_host.host_id
+
     delete_messages = DeleteMessage.objects.all()
 
     messages = AddMessage.objects.all()
     for delete_message in DeleteMessage.objects.all():
         messages = messages.exclude(uuid=delete_message.uuid)
 
-    return render(request, 'index.html', {'messages': messages, 'form': form})
+    messages = messages.filter(host_id=active_host)
+
+    data = {'messages': messages, 'other_hosts': other_hosts, 'running_host': running_host, 'active_host': int(active_host)}
+
+    return render(request, 'messages.html', data)
 
 # login for user session
 def login_view(request):
@@ -127,7 +145,7 @@ def receive(request):
     if request.method == 'POST':
         data = request.POST.dict()
 
-        print "\033[91m[RECEIVED] " + data['operation']
+        print "[RECEIVED] " + data['operation']
 
         csrftoken = data.pop('csrfmiddlewaretoken')
         operation = data.pop('operation')
@@ -157,7 +175,7 @@ def send_thread(host):
         else:
             data = queue[host.host_id].get()
 
-            print "\033[91m[THREAD " + str(host.host_id) + "] " + data['operation'] + " to " + str(host)
+            print "[THREAD " + str(host.host_id) + "] " + data['operation'] + " to " + str(host)
 
             while True:
                 try:
@@ -176,7 +194,8 @@ def send_thread(host):
                     break
                 except requests.exceptions.RequestException:
                     time.sleep(2)
-                    print 'fail... trying again'
+                    print "[THREAD " + str(host.host_id) + "] Can't reach host " + str(host)
+                    continue
 
 for host in other_hosts:
     thread.start_new_thread(send_thread, (host, ))

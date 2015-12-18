@@ -38,38 +38,45 @@
         <h2>crdt mail service</h2>
 
         <ul class="nav nav-pills">
-            <li class="active"><a href="{% url 'index' %}">Send</a></li>
+            <li><a href="{% url 'index' %}">Send</a></li>
             {% if other_hosts %} {% for host in other_hosts %}
-                <li><a href="{% url 'show_messages' %}?id={{ host.host_id }}">Host {{ host.host_id }}</a></li>
+                {% if host.toInt == active_host %}
+                    <li class="active" ><a href="{% url 'show_messages' %}?id={{ host.host_id }}">Host {{ host.host_id }}</a></li>
+                {% else %}
+                    <li><a href="{% url 'show_messages' %}?id={{ host.host_id }}">Host {{ host.host_id }}</a></li>
+                {% endif %}
             {% endfor %} {% endif %}
-            {% ifequal running_host active_host %}
+            {% if running_host.toInt == active_host %}
                 <li class="active"><a href="{% url 'show_messages' %}?id={{ running_host }}">Outbox</a></li>
             {% else %}
-                <li><a href="{% url 'show_messages' %}?id={{ running_host }}">Outbox</a></li>
-            {% endifequal %}
+                <li><a href="{% url 'show_messages' %}?id={{ running_host.host_id }}">Outbox</a></li>
+            {% endif %}
             <li><a href="{% url 'delete_all' %}">Delete All</a></li>
             <li><a href="{% url 'logout' %}">Logout</a></li>
         </ul>
 
-        <h5>send a message:</h5>
+        <h5>messages:</h5>
 
         <div class="tab-content">
-            <div id="send" class="tab-pane fade in active">
-                <form action="{% url 'index' %}" method="post">
-                    {% csrf_token %} 
-                    {% if form.errors %} {% for error in form.errors.items %}
-                        <div class="alert alert-danger" role="alert">
-                            <label class="control-label">* {{ error.1 }}</label>
-                        </div>
-                    {% endfor %} {% endif %}                    
-                    <div class="coll-xs-12">
-                        {{ form.to }}</br>
-                        {{ form.text }}</br>
+            <div class="tab-pane fade in active">
+                {% for message in messages %}
+                    <div class="well well-sm">
+                    <strong>uuid: {{ message.uuid }}</strong></br>
+                    <p>from : {{ message.author }} - {{ message.date }}</p>
+                    <div class="well well-sm">
+                        {{ message.text }}
+                    </div>                    
+                    <a href="{% url 'delete' %}?id={{ message.uuid }}"
                         <button class="btn btn-default" type="submit" value="Submit">
-                            Send
-                        </button>    
-                    </div>
-                </form>
+                            Delete
+                        </button>
+                    </a></br>
+                </div>
+                {% empty %}
+                    <div class="well well-sm">
+                        Sorry, no messages.
+                    </div> 
+                {% endfor %}
             </div>
         </div>
     </div>

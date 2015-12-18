@@ -83,3 +83,6 @@ class Host(models.Model):
 
 	def __str__(self):
 		return HOSTNAME + ':' + str(self.port)
+
+	def toInt(self):
+		return int(self.host_id)
