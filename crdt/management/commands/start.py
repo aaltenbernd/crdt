@@ -8,9 +8,7 @@ class Command(BaseCommand):
 		parser.add_argument('ID', type=int)
 
 	def handle(self, *args, **options):
-
-
-		if User.objects.filter(username="anton") is None:
+		if not User.objects.filter(username="anton").exists():
 			createUser("anton", "123qwe")
 
 		print options['ID']
