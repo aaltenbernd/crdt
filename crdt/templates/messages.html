@@ -40,16 +40,16 @@
         <ul class="nav nav-pills">
             <li><a href="{% url 'index' %}">Send</a></li>
             {% if other_hosts %} {% for host in other_hosts %}
-                {% if host.toInt == active_host %}
-                    <li class="active" ><a href="{% url 'show_messages' %}?id={{ host.host_id }}">Host {{ host.host_id }}</a></li>
+                {% if host.id == active_host %}
+                    <li class="active" ><a href="{% url 'show_messages' %}?id={{ host.id }}">Host {{ host.id }}</a></li>
                 {% else %}
-                    <li><a href="{% url 'show_messages' %}?id={{ host.host_id }}">Host {{ host.host_id }}</a></li>
+                    <li><a href="{% url 'show_messages' %}?id={{ host.id }}">Host {{ host.id }}</a></li>
                 {% endif %}
             {% endfor %} {% endif %}
-            {% if running_host.toInt == active_host %}
+            {% if running_host == active_host %}
                 <li class="active"><a href="{% url 'show_messages' %}?id={{ running_host }}">Outbox</a></li>
             {% else %}
-                <li><a href="{% url 'show_messages' %}?id={{ running_host.host_id }}">Outbox</a></li>
+                <li><a href="{% url 'show_messages' %}?id={{ running_host }}">Outbox</a></li>
             {% endif %}
             <li><a href="{% url 'delete_all' %}">Delete All</a></li>
             <li><a href="{% url 'logout' %}">Logout</a></li>

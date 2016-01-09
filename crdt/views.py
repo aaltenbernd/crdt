@@ -4,23 +4,17 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.forms import model_to_dict
 
-from .models import Host, AddMessage, DeleteMessage
+from .models import AddMessage, DeleteMessage
 from .forms import AddMessageForm, LoginForm
 
-import Queue
 import thread
 import time
 import requests
 
-# filter running host and other hosts
-running_host = Host.objects.filter(host_self=True)[0]
-other_hosts = Host.objects.filter(host_self=False)
-all_hosts = Host.objects.all()
+from .host import *
 
-# init queues
-queue = {}
-for host in other_hosts:
-    queue[host.host_id] = Queue.Queue()
+# localHost
+HOSTNAME = "http://127.0.0.1"
 
 # index page and add operation
 # create new message
@@ -38,7 +32,7 @@ def index(request):
         if form.is_valid():
             text = request.POST.get('text')
 
-            message = AddMessage.objects.create(text=text, host_id=running_host.host_id)
+            message = AddMessage.objects.create(text=text, host_id=running_host['id'])
 
             user = request.user
 
@@ -46,14 +40,14 @@ def index(request):
             user.userprofile.save()
 
             for host in other_hosts:
-                queue[host.host_id].put({'operation' : 'increment', 'username' : user.username})
-                queue[host.host_id].put(message.to_dict(user.username, 'add'))
+                queue[host['id']].put({'operation' : 'increment', 'username' : user.username})
+                queue[host['id']].put(message.to_dict(user.username, 'add'))
 
             return redirect('index')
 
     form = AddMessageForm()
 
-    data = {'form': form, 'other_hosts': other_hosts, 'running_host': running_host.host_id}
+    data = {'form': form, 'other_hosts': other_hosts, 'running_host': running_host['id']}
 
     return render(request, 'index.html', data)
 
@@ -64,7 +58,7 @@ def show_messages(request):
     active_host = request.GET.get('id', '')
 
     if not active_host:
-        active_host = running_host.host_id
+        active_host = running_host['id']
 
     delete_messages = DeleteMessage.objects.all()
 
@@ -74,7 +68,7 @@ def show_messages(request):
 
     messages = messages.filter(host_id=active_host)
 
-    data = {'messages': messages, 'other_hosts': other_hosts, 'running_host': running_host, 'active_host': int(active_host)}
+    data = {'messages': messages, 'other_hosts': other_hosts, 'running_host': running_host['id'], 'active_host': int(active_host)}
 
     return render(request, 'messages.html', data)
 
@@ -125,7 +119,7 @@ def delete(request):
     delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id)
 
     for host in other_hosts:
-        queue[host.host_id].put(delete_message.to_dict(request.user.username, 'delete'))   
+        queue[host['id']].put(delete_message.to_dict(request.user.username, 'delete'))   
 
     return redirect('index')
 
@@ -167,20 +161,23 @@ def receive(request):
     else:   
         return redirect('index')
 
+def get_url(host):
+    return "http://" + str(host) + "/receive/"
+
 # sending thread
 def send_thread(host):
     while True:
-        if queue[host.host_id].empty():
+        if queue[host['id']].empty():
             time.sleep(1)
         else:
-            data = queue[host.host_id].get()
+            data = queue[host['id']].get()
 
-            print "[THREAD " + str(host.host_id) + "] " + data['operation'] + " to " + str(host)
+            print "[THREAD " + str(host['id']) + "] " + data['operation'] + " to " + str(host['port'])
 
             while True:
                 try:
                     # set up csrftoken, because django needs it
-                    URL = "http://" + str(host) + "/receive/"
+                    URL = HOSTNAME + ":" + str(host['port']) + "/receive/"
 
                     client = requests.session()
                     client.get(URL)
@@ -194,7 +191,7 @@ def send_thread(host):
                     break
                 except requests.exceptions.RequestException:
                     time.sleep(2)
-                    print "[THREAD " + str(host.host_id) + "] Can't reach host " + str(host)
+                    print "[THREAD " + str(host['id']) + "] Can't reach host " + str(host['port'])
                     continue
 
 for host in other_hosts:

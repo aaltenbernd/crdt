@@ -4,22 +4,12 @@ from django.contrib.auth.models import User
 
 import uuid
 
-# localHost
-HOSTNAME = "127.0.0.1"
-
 # used in python manage.py init
 # creates a user with given username and passwrd
 def createUser(username, password):
 	user = User.objects.create_user(username=username, password=password)
 	profile = UserProfile.objects.create(user=user)
 	user.userprofile = profile
-	return
-
-# used in python manage.py init
-# creates a none with given id and port
-# first argument should be set true, if node is the running host
-def createHost(host_self, host_id, port):
-	Host.objects.create(host_self=host_self, host_id=host_id, port=port)
 	return
 
 # user have a distributed counter
@@ -73,16 +63,3 @@ class DeleteMessage(models.Model):
 		message_dict['operation'] = operation
 		message_dict['username'] = username
 		return message_dict
-
-# saves running (n_self=True) and other hosts (n_self=False)
-# n_id have to the same on all hosts in the cluster
-class Host(models.Model):
-	host_self = models.BooleanField()
-	host_id = models.IntegerField()
-	port = models.IntegerField()
-
-	def __str__(self):
-		return HOSTNAME + ':' + str(self.port)
-
-	def toInt(self):
-		return int(self.host_id)
