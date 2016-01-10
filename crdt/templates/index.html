@@ -40,24 +40,24 @@
         <ul class="nav nav-pills">
             <li class="active"><a href="{% url 'index' %}">Send</a></li>
             {% if other_hosts %} {% for host in other_hosts %}
-                <li><a href="{% url 'show_messages' host.id %}">Host {{ host.id }}</a></li>
+                <li><a href="{% url 'show_messages' host.id None %}">Host {{ host.id }}</a></li>
             {% endfor %} {% endif %}
-            <li><a href="{% url 'show_messages' running_host %}">Outbox</a></li>
+            <li><a href="{% url 'show_messages' running_host None %}">Outbox</a></li>
             <li><a href="{% url 'delete_all' %}">Delete All</a></li>
             <li><a href="{% url 'logout' %}">Logout</a></li>
         </ul>
 
         <h5>send a message:</h5>
 
-        <div class="tab-content">
-            <div id="send" class="tab-pane fade in active">
+        <div class="row">
+            <div class="col-xs-12">
                 <form action="{% url 'index' %}" method="post">
                     {% csrf_token %} 
                     {% if form.errors %} {% for error in form.errors.items %}
                         <div class="alert alert-danger" role="alert">
                             <label class="control-label">* {{ error.1 }}</label>
                         </div>
-                    {% endfor %} {% endif %}                    
+                    {% endfor %} {% endif %}                   
                     <div class="coll-xs-12">
                         {{ form.to }}</br>
                         {{ form.text }}</br>

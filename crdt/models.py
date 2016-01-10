@@ -34,7 +34,7 @@ class AddFolder(models.Model):
 	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 	def __str__(self):
-		return 'FOLDER_GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
+		return self.title
 
 	def to_dict(self, username):
 		folder_dict = {}
@@ -50,7 +50,7 @@ class DeleteFolder(models.Model):
 	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 	def __str__(self):
-		return 'FOLDER_GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
+		return self.title
 
 	def to_dict(self, username):
 		folder_dict = {}

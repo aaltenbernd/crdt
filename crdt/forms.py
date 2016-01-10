@@ -6,6 +6,14 @@ from django.contrib.auth import authenticate
 
 from .models import AddMessage, AddFolder
 
+class ChangeFolderForm(forms.Form):
+	folder_choice = forms.ModelChoiceField(label='Folder', empty_label="Inbox", queryset = AddFolder.objects.all(), widget=forms.Select(attrs={'class': "form-control"}), required=False)
+
+	def clean(self):
+		folder_choice = self.cleaned_data['folder_choice']
+
+		return folder_choice
+
 class AddFolderForm(forms.Form):
 	title = forms.CharField(required=False, widget=forms.TextInput(
 		attrs={'class': 'form-control', 'placeholder': 'Foldertitle'}))

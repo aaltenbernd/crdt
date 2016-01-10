@@ -41,86 +41,184 @@
             <li><a href="{% url 'index' %}">Send</a></li>
             {% if other_hosts %} {% for host in other_hosts %}
                 {% if host.id == active_host %}
-                    <li class="active" ><a href="{% url 'show_messages' host.id %}">Host {{ host.id }}</a></li>
+                    {% if active_folder == None %}
+                    <li class="active" ><a href="{% url 'show_messages' host.id None %}">Host {{ host.id }}</a></li>
+                    {% else %}
+                    <li class="active" ><a href="{% url 'show_messages' host.id active_folder.uuid %}">Host {{ host.id }}</a></li>
+                    {% endif %}
                 {% else %}
-                    <li><a href="{% url 'show_messages' host.id %}">Host {{ host.id }}</a></li>
+                    {% if active_folder == None %}
+                    <li><a href="{% url 'show_messages' host.id None %}">Host {{ host.id }}</a></li>
+                    {% else %}
+                    <li><a href="{% url 'show_messages' host.id active_folder.uuid %}">Host {{ host.id }}</a></li>
+                    {% endif %}
                 {% endif %}
             {% endfor %} {% endif %}
             {% if running_host == active_host %}
-                <li class="active"><a href="{% url 'show_messages' running_host %}">Outbox</a></li>
+                {% if active_folder == None %}
+                <li class="active"><a href="{% url 'show_messages' running_host None %}">Outbox</a></li>
+                {% else %}
+                <li class="active"><a href="{% url 'show_messages' running_host active_folder.uuid %}">Outbox</a></li>
+                {% endif %}
             {% else %}
-                <li><a href="{% url 'show_messages' running_host %}">Outbox</a></li>
+                {% if active_folder == None %}
+                <li><a href="{% url 'show_messages' running_host None %}">Outbox</a></li>
+                {% else %}
+                <li><a href="{% url 'show_messages' running_host active_folder.uuid %}">Outbox</a></li>
+                {% endif %}
             {% endif %}
             <li><a href="{% url 'delete_all' %}">Delete All</a></li>
             <li><a href="{% url 'logout' %}">Logout</a></li>
         </ul>
 
-        <h5>add folder:</h5>
+        <div class="row">
+            <div class="col-sm-3">
+                <h5>folders:</h5>
 
-        <div class="tab-content">
-            <div id="send" class="tab-pane fade in active">
-                <form action="{% url 'show_messages' active_host %}" method="post">
-                    {% csrf_token %} 
-                    {% if form.errors %} {% for error in form.errors.items %}
-                        <div class="alert alert-danger" role="alert">
-                            <label class="control-label">* {{ error.1 }}</label>
+                <ul class="nav nav-pills nav-stacked">
+                    {% if active_folder == None %}
+                        <li class="active"><a href="{% url 'show_messages' active_host None %}">Inbox</a></li>
+                    {% else %}
+                        <li><a href="{% url 'show_messages' active_host None %}">Inbox</a></li>
+                    {% endif %}
+                    {% if folders %} {% for folder in folders %}
+                        {% if folder.uuid == active_folder.uuid %}
+                            <li class="active" ><a href="{% url 'show_messages' active_host folder.uuid %}">{{ folder.title }}</a></li>
+                        {% else %}
+                            <li><a href="{% url 'show_messages' active_host folder.uuid %}">{{ folder.title }}</a></li>
+                        {% endif %}
+                    {% endfor %} {% endif %}
+                </ul>
+
+                <h5>add folder:</h5>
+
+                <div id="send" class="tab-pane fade in active">
+                    {% if active_folder == None %}
+                    <form action="{% url 'show_messages' active_host None %}" method="post">
+                    {% else %}
+                    <form action="{% url 'show_messages' active_host active_folder.uuid %}" method="post">
+                    {% endif %}
+                        {% csrf_token %} 
+                        {% if form.errors %} {% for error in form.errors.items %}
+                            <div class="alert alert-danger" role="alert">
+                                <label class="control-label">* {{ error.1 }}</label>
+                            </div>
+                        {% endfor %} {% endif %}                    
+                        <div class="coll-xs-12">
+                            {{ form.title }}</br>
+                            <button class="btn btn-default" type="submit" value="Submit">
+                                Add Folder
+                            </button>    
                         </div>
-                    {% endfor %} {% endif %}                    
-                    <div class="coll-xs-12">
-                        {{ form.title }}</br>
-                        <button class="btn btn-default" type="submit" value="Submit">
-                            Add Folder
-                        </button>    
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <h5>folders:</h5>
-
-        <div class="tab-content">
-            <div class="tab-pane fade in active">
-                {% for folder in folders %}
-                    <div class="well well-sm">
-                    <strong>uuid: {{ folder.uuid }}</strong></br>
-                    <p>title : {{ folder.title }}</p>
-                    <p>host : {{ folder.host_id }}</p>
-                    <a href="{% url 'delete_folder' active_host=active_host %}?id={{ folder.uuid }}"
-                        <button class="btn btn-default" type="submit" value="Submit">
-                            Delete
-                        </button>
-                    </a></br>             
+                    </form>
                 </div>
-                {% empty %}
-                    <div class="well well-sm">
-                        Sorry, no folders.
-                    </div> 
-                {% endfor %}
             </div>
-        </div>
 
-        <h5>messages:</h5>
 
-        <div class="tab-content">
-            <div class="tab-pane fade in active">
+            <div class="col-sm-9">
+
+                <h5>messages:</h5>
+
                 {% for message in messages %}
-                    <div class="well well-sm">
-                    <strong>uuid: {{ message.uuid }}</strong></br>
-                    <p>from : {{ message.author }} - {{ message.date }}</p>
-                    <div class="well well-sm">
-                        {{ message.text }}
-                    </div>                    
-                    <a href="{% url 'delete' active_host=active_host %}?id={{ message.uuid }}"
-                        <button class="btn btn-default" type="submit" value="Submit">
-                            Delete
-                        </button>
-                    </a></br>
+                    <div class="row">
+                        <strong>uuid: {{ message.uuid }}</strong></br>
+                        <p>from : {{ message.author }} - {{ message.date }}</p>
+                        <div class="well well-sm">
+                            {{ message.text }}
+                        </div>
+                    </div>
+                    <div class="row well well-sm">
+                        {% if active_folder == None %}
+                            <form action="{% url 'change_folder' active_host None message.uuid %}" method="post">
+                            {% else %}
+                            <form action="{% url 'change_folder' active_host active_folder.uuid message.uuid %}" method="post">
+                            {% endif %}
+                                {% csrf_token %}                     
+                                <div class="col-xs-2">
+                                    {{ change_folder_form.folder_choice }}
+                                     
+                                </div>
+                                <div class="col-xs-2">
+                                    <button class="btn btn-default" type="submit" value="Submit">
+                                        Change Folder
+                                    </button> 
+                                </div>  
+                            </form>
+
+                            {% if active_folder == None %}
+                            <a href="{% url 'delete' active_host None message.uuid %}">
+                            {% else %}
+                            <a href="{% url 'delete' active_host active_folder.uuid message.uuid %}">
+                            {% endif %}
+                                <div class="col-xs-8">
+                                    <button class="btn btn-default" type="submit" value="Submit">
+                                        Delete
+                                    </button> 
+                                </div>
+                            </a>
+                            
+
+                    </div>
+
+         
+                    
+                        
+                        
+
+
+
+
+                    {% empty %}
+                        <div class="well well-sm">
+                            Sorry, no messages.
+                        </div> 
+                    {% endfor %}                   
+                    
+       
+    
+
+
+                
+
+                <div class="tab-content">
+                    <div class="row">
+                        {% for message in messages %}
+                            <div class="well well-sm">
+                            <strong>uuid: {{ message.uuid }}</strong></br>
+                            <p>from : {{ message.author }} - {{ message.date }}</p>
+                            <div class="well well-sm">
+                                {{ message.text }}
+                            </div>
+                            {% if active_folder == None %}
+                            <form action="{% url 'change_folder' active_host None message.uuid %}" method="post">
+                            {% else %}
+                            <form action="{% url 'change_folder' active_host active_folder.uuid message.uuid %}" method="post">
+                            {% endif %}
+                                {% csrf_token %}                     
+                                <div class="coll-xs-12">
+                                    {{ change_folder_form.folder_choice }}
+                                    <button class="btn btn-default" type="submit" value="Submit">
+                                        Change Folder
+                                    </button>    
+                                </div>
+                            </form>
+                            {% if active_folder == None %}
+                            <a href="{% url 'delete' active_host None message.uuid %}">
+                            {% else %}
+                            <a href="{% url 'delete' active_host active_folder.uuid message.uuid %}">
+                            {% endif %}
+                                <button class="btn btn-default" type="submit" value="Submit">
+                                    Delete
+                                </button>
+                            </a></br>
+                        </div>
+                        {% empty %}
+                            <div class="well well-sm">
+                                Sorry, no messages.
+                            </div> 
+                        {% endfor %}
+                    </div>
                 </div>
-                {% empty %}
-                    <div class="well well-sm">
-                        Sorry, no messages.
-                    </div> 
-                {% endfor %}
             </div>
         </div>
     </div>
