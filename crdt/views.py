@@ -164,6 +164,12 @@ def delete_all(request):
     for message in DeleteMessage.objects.all():
         message.delete()
 
+    for folder in AddFolder.objects.all():
+        folder.delete()
+
+    for folder in DeleteFolder.objects.all():
+        folder.delete()
+
     return redirect('index')
 
 # handle operations send by send_thread on other hosts
