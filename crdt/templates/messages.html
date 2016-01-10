@@ -41,19 +41,63 @@
             <li><a href="{% url 'index' %}">Send</a></li>
             {% if other_hosts %} {% for host in other_hosts %}
                 {% if host.id == active_host %}
-                    <li class="active" ><a href="{% url 'show_messages' %}?id={{ host.id }}">Host {{ host.id }}</a></li>
+                    <li class="active" ><a href="{% url 'show_messages' host.id %}">Host {{ host.id }}</a></li>
                 {% else %}
-                    <li><a href="{% url 'show_messages' %}?id={{ host.id }}">Host {{ host.id }}</a></li>
+                    <li><a href="{% url 'show_messages' host.id %}">Host {{ host.id }}</a></li>
                 {% endif %}
             {% endfor %} {% endif %}
             {% if running_host == active_host %}
-                <li class="active"><a href="{% url 'show_messages' %}?id={{ running_host }}">Outbox</a></li>
+                <li class="active"><a href="{% url 'show_messages' running_host %}">Outbox</a></li>
             {% else %}
-                <li><a href="{% url 'show_messages' %}?id={{ running_host }}">Outbox</a></li>
+                <li><a href="{% url 'show_messages' running_host %}">Outbox</a></li>
             {% endif %}
             <li><a href="{% url 'delete_all' %}">Delete All</a></li>
             <li><a href="{% url 'logout' %}">Logout</a></li>
         </ul>
+
+        <h5>add folder:</h5>
+
+        <div class="tab-content">
+            <div id="send" class="tab-pane fade in active">
+                <form action="{% url 'show_messages' active_host %}" method="post">
+                    {% csrf_token %} 
+                    {% if form.errors %} {% for error in form.errors.items %}
+                        <div class="alert alert-danger" role="alert">
+                            <label class="control-label">* {{ error.1 }}</label>
+                        </div>
+                    {% endfor %} {% endif %}                    
+                    <div class="coll-xs-12">
+                        {{ form.title }}</br>
+                        <button class="btn btn-default" type="submit" value="Submit">
+                            Add Folder
+                        </button>    
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <h5>folders:</h5>
+
+        <div class="tab-content">
+            <div class="tab-pane fade in active">
+                {% for folder in folders %}
+                    <div class="well well-sm">
+                    <strong>uuid: {{ folder.uuid }}</strong></br>
+                    <p>title : {{ folder.title }}</p>
+                    <p>host : {{ folder.host_id }}</p>
+                    <a href="{% url 'delete_folder' active_host=active_host %}?id={{ folder.uuid }}"
+                        <button class="btn btn-default" type="submit" value="Submit">
+                            Delete
+                        </button>
+                    </a></br>             
+                </div>
+                {% empty %}
+                    <div class="well well-sm">
+                        Sorry, no folders.
+                    </div> 
+                {% endfor %}
+            </div>
+        </div>
 
         <h5>messages:</h5>
 
@@ -66,7 +110,7 @@
                     <div class="well well-sm">
                         {{ message.text }}
                     </div>                    
-                    <a href="{% url 'delete' %}?id={{ message.uuid }}"
+                    <a href="{% url 'delete' active_host=active_host %}?id={{ message.uuid }}"
                         <button class="btn btn-default" type="submit" value="Submit">
                             Delete
                         </button>

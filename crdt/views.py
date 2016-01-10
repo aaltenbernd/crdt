@@ -4,8 +4,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.forms import model_to_dict
 
-from .models import AddMessage, DeleteMessage
-from .forms import AddMessageForm, LoginForm
+from .models import AddMessage, DeleteMessage, AddFolder, DeleteFolder
+from .forms import AddMessageForm, AddFolderForm, LoginForm
 
 import thread
 import time
@@ -32,7 +32,7 @@ def index(request):
         if form.is_valid():
             text = request.POST.get('text')
 
-            message = AddMessage.objects.create(text=text, host_id=running_host['id'])
+            message = AddMessage.objects.create(text=text, host_id=running_host['id'], folder=None)
 
             user = request.user
 
@@ -51,24 +51,43 @@ def index(request):
 
     return render(request, 'index.html', data)
 
-def show_messages(request):
+def show_messages(request, active_host):
     if not request.user.is_authenticated():
         return redirect('login')
-
-    active_host = request.GET.get('id', '')
 
     if not active_host:
         active_host = running_host['id']
 
-    delete_messages = DeleteMessage.objects.all()
+    if request.method == 'POST':
+        form = AddFolderForm(request.POST)
 
+        if form.is_valid():
+            title = request.POST.get('title')
+
+            folder = AddFolder.objects.create(title=title, host_id=active_host)
+
+            for host in other_hosts:
+                queue[host['id']].put(folder.to_dict(request.user.username))
+
+            return redirect('show_messages', active_host)
+
+    form = AddFolderForm()
+
+    # get all messages
     messages = AddMessage.objects.all()
     for delete_message in DeleteMessage.objects.all():
         messages = messages.exclude(uuid=delete_message.uuid)
 
-    messages = messages.filter(host_id=active_host)
+    messages = messages.filter(host_id=active_host).order_by('-date')
 
-    data = {'messages': messages, 'other_hosts': other_hosts, 'running_host': running_host['id'], 'active_host': int(active_host)}
+    # get all folder
+    folders = AddFolder.objects.all()
+    for delete_folder in DeleteFolder.objects.all():
+        folders = folders.exclude(uuid=delete_folder.uuid)
+
+    folders = folders.filter(host_id=active_host).order_by('title')
+
+    data = {'form': form, 'messages': messages, 'folders': folders, 'other_hosts': other_hosts, 'running_host': running_host['id'], 'active_host': int(active_host)}
 
     return render(request, 'messages.html', data)
 
@@ -101,11 +120,7 @@ def logout_view(request):
     logout(request)
     return redirect('index')
 
-# delete operation 
-# pick message
-# call broadcast -> save outgoing operations
-# delete it
-def delete(request):
+def delete(request, active_host):
     if not request.user.is_authenticated():
         return redirect('login')
     
@@ -121,7 +136,25 @@ def delete(request):
     for host in other_hosts:
         queue[host['id']].put(delete_message.to_dict(request.user.username, 'delete'))   
 
-    return redirect('index')
+    return redirect('show_messages', active_host)
+
+def delete_folder(request, active_host):
+    if not request.user.is_authenticated():
+        return redirect('login')
+    
+    uuid = request.GET.get('id', '')
+
+    try:
+        add_folder = AddFolder.objects.filter(uuid=uuid)[0]
+    except(IndexError, ValueError):
+        return redirect('index')
+
+    delete_folder = DeleteFolder.objects.create(uuid=add_folder.uuid, host_id=add_folder.host_id)
+
+    for host in other_hosts:
+        queue[host['id']].put(delete_folder.to_dict(request.user.username))   
+
+    return redirect('show_messages', active_host)
 
 # just for cleaning up (DEBUG)
 def delete_all(request):
@@ -156,6 +189,12 @@ def receive(request):
         if operation == 'delete':
             delete_message = DeleteMessage(**data)
             delete_message.save()
+        if operation == 'add_folder':
+            add_folder = AddFolder(**data)
+            add_folder.save()
+        if operation == 'delete_folder':
+            delete_folder = DeleteFolder(**data)
+            delete_folder.save()
 
         return redirect('index')
     else:   

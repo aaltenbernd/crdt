@@ -4,7 +4,22 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate
 
-from .models import AddMessage
+from .models import AddMessage, AddFolder
+
+class AddFolderForm(forms.Form):
+	title = forms.CharField(required=False, widget=forms.TextInput(
+		attrs={'class': 'form-control', 'placeholder': 'Foldertitle'}))
+
+	def clean(self):
+		title = self.cleaned_data['title']
+
+		if len(title) == 0:
+			self._errors['title_empty'] = "No empty messages allowed"
+
+		if len(title) > 10:
+			self._errors['title_length'] = "The title exceeds maximum length of 10 characters"
+
+		return title
 
 class AddMessageForm(forms.Form):
 	to = forms.CharField(required=False, widget=forms.TextInput(

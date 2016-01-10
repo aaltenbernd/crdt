@@ -28,15 +28,48 @@ class UserProfile(models.Model):
 	def decrement(self):
 		self.counter = self.counter - 1
 
+class AddFolder(models.Model):
+	title = models.CharField(max_length=10)
+	host_id = models.IntegerField()
+	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+	def __str__(self):
+		return 'FOLDER_GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
+
+	def to_dict(self, username):
+		folder_dict = {}
+		folder_dict['uuid'] = self.uuid
+		folder_dict['host_id'] = self.host_id
+		folder_dict['title'] = self.title
+		folder_dict['operation'] = 'add_folder'
+		folder_dict['username'] = username
+		return folder_dict
+
+class DeleteFolder(models.Model):
+	host_id = models.IntegerField()
+	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+	def __str__(self):
+		return 'FOLDER_GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
+
+	def to_dict(self, username):
+		folder_dict = {}
+		folder_dict['uuid'] = self.uuid
+		folder_dict['host_id'] = self.host_id
+		folder_dict['operation'] = 'delete_folder'
+		folder_dict['username'] = username
+		return folder_dict
+
 class AddMessage(models.Model):
 	text = models.CharField(max_length=320)
 	date = models.DateTimeField(default=timezone.now)
 	author = models.CharField(max_length=10, default="myself")
 	host_id = models.IntegerField()
 	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+	folder = models.ForeignKey(AddFolder, null=True)
 
 	def __str__(self):
-		return 'GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
+		return 'MESSAGE_GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
 
 	def to_dict(self, username, operation):
 		message_dict = {}
@@ -54,7 +87,7 @@ class DeleteMessage(models.Model):
 	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 	def __str__(self):
-		return 'GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
+		return 'MESSAGE_GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
 
 	def to_dict(self, username, operation):
 		message_dict = {}
