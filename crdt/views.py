@@ -235,6 +235,7 @@ def receive(request):
         if operation == 'add':
             add_message = AddMessage(**data)
             add_message.save()
+            print data.pop('folder')
         if operation == 'delete':
             delete_message = DeleteMessage(**data)
             delete_message.save()
