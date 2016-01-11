@@ -221,7 +221,7 @@ def receive(request):
     if request.method == 'POST':
         data = request.POST.dict()
 
-        print data
+        print data.pop('folder')
 
         print "[RECEIVED] " + data['operation']
 
