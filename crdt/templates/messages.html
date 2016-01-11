@@ -117,108 +117,46 @@
 
             <div class="col-sm-9">
 
-                <h5>messages:</h5>
+                <div class="row">
+                    <h5>messages:</h5>
+                </div>
 
                 {% for message in messages %}
-                    <div class="row">
-                        <strong>uuid: {{ message.uuid }}</strong></br>
-                        <p>from : {{ message.author }} - {{ message.date }}</p>
-                        <div class="well well-sm">
-                            {{ message.text }}
-                        </div>
+                <div class="row well well-lg">
+                    <div class="col-sm-8">
+                        <p>uuid : {{ message.uuid }}</p>
+                        <p>from : {{ message.author }}</p>
+                        <p>date : {{ message.date }}</p>
+                        <p>text : {{ message.text }}</p>
                     </div>
-                    <div class="row well well-sm">
+                    <div class="col-sm-4">
                         {% if active_folder == None %}
-                            <form action="{% url 'change_folder' active_host None message.uuid %}" method="post">
-                            {% else %}
-                            <form action="{% url 'change_folder' active_host active_folder.uuid message.uuid %}" method="post">
-                            {% endif %}
-                                {% csrf_token %}                     
-                                <div class="col-xs-2">
-                                    {{ change_folder_form.folder_choice }}
-                                     
-                                </div>
-                                <div class="col-xs-2">
-                                    <button class="btn btn-default" type="submit" value="Submit">
-                                        Change Folder
-                                    </button> 
-                                </div>  
-                            </form>
-
-                            {% if active_folder == None %}
-                            <a href="{% url 'delete' active_host None message.uuid %}">
-                            {% else %}
-                            <a href="{% url 'delete' active_host active_folder.uuid message.uuid %}">
-                            {% endif %}
-                                <div class="col-xs-8">
-                                    <button class="btn btn-default" type="submit" value="Submit">
-                                        Delete
-                                    </button> 
-                                </div>
-                            </a>
-                            
-
-                    </div>
-
-         
-                    
-                        
-                        
-
-
-
-
-                    {% empty %}
-                        <div class="well well-sm">
-                            Sorry, no messages.
-                        </div> 
-                    {% endfor %}                   
-                    
-       
-    
-
-
-                
-
-                <div class="tab-content">
-                    <div class="row">
-                        {% for message in messages %}
-                            <div class="well well-sm">
-                            <strong>uuid: {{ message.uuid }}</strong></br>
-                            <p>from : {{ message.author }} - {{ message.date }}</p>
-                            <div class="well well-sm">
-                                {{ message.text }}
-                            </div>
-                            {% if active_folder == None %}
-                            <form action="{% url 'change_folder' active_host None message.uuid %}" method="post">
-                            {% else %}
-                            <form action="{% url 'change_folder' active_host active_folder.uuid message.uuid %}" method="post">
-                            {% endif %}
-                                {% csrf_token %}                     
-                                <div class="coll-xs-12">
-                                    {{ change_folder_form.folder_choice }}
-                                    <button class="btn btn-default" type="submit" value="Submit">
-                                        Change Folder
-                                    </button>    
-                                </div>
-                            </form>
-                            {% if active_folder == None %}
-                            <a href="{% url 'delete' active_host None message.uuid %}">
-                            {% else %}
-                            <a href="{% url 'delete' active_host active_folder.uuid message.uuid %}">
-                            {% endif %}
-                                <button class="btn btn-default" type="submit" value="Submit">
-                                    Delete
-                                </button>
-                            </a></br>
-                        </div>
-                        {% empty %}
-                            <div class="well well-sm">
-                                Sorry, no messages.
-                            </div> 
-                        {% endfor %}
+                        <form action="{% url 'change_folder' active_host None message.uuid %}" method="post">
+                        {% else %}
+                        <form action="{% url 'change_folder' active_host active_folder.uuid message.uuid %}" method="post">
+                        {% endif %}
+                        {% csrf_token %}
+                            {{ change_folder_form.folder_choice }}</br>
+                            <button class="btn btn-default btn-block btn-sm" type="submit" value="Submit">
+                                Change Folder
+                            </button></br>
+                        </form>
+                        {% if active_folder == None %}
+                        <a href="{% url 'delete' active_host None message.uuid %}">
+                        {% else %}
+                        <a href="{% url 'delete' active_host active_folder.uuid message.uuid %}">
+                        {% endif %}
+                            <button class="btn btn-default btn-block btn-sm" type="submit" value="Submit">
+                                Delete
+                            </button> 
+                        </a>
                     </div>
                 </div>
+                {% empty %}
+                    <div class="row well well-lg">
+                        Sorry, no messages.
+                    </div> 
+                {% endfor %}
             </div>
         </div>
     </div>

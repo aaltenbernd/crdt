@@ -116,12 +116,21 @@ def change_folder(request, active_host, active_folder_id, message_id):
    
             add_message = AddMessage.objects.get(uuid=message_id)
 
+            if add_message.folder == folder:
+                print 'gleicher folder'
+                return redirect('show_messages', active_host, active_folder_id)
+
+
             if add_message is None:
                 return redirect('show_messages', active_host, active_folder_id)
 
             delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id)
 
             new_message = AddMessage.objects.create(text=add_message.text, host_id=add_message.host_id, folder=folder)
+
+            for host in other_hosts:
+                queue[host['id']].put(delete_message.to_dict(request.user.username, 'delete'))
+                queue[host['id']].put(new_message.to_dict(request.user.username, 'add'))
 
             return redirect('show_messages', active_host, active_folder_id)
 
