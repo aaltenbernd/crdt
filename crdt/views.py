@@ -235,7 +235,8 @@ def receive(request):
         if operation == 'add':
             add_message = AddMessage(**data)
             folder_id = data.pop('folder')
-            if folder_id is not None:
+            print folder_id
+            if folder_id != 'None':
                 add_message.folder = AddFolder.objects.get(uuid=folder_id)
             add_message.save()
         if operation == 'delete':
