@@ -51,6 +51,20 @@ def index(request):
 
     return render(request, 'index.html', data)
 
+def getAllMessages(host_id):
+    messages = AddMessage.objects.filter(host_id=host_id)
+    for delete_message in DeleteMessage.objects.filter(host_id=host_id):
+        messages = messages.exclude(uuid=delete_message.uuid)
+
+    return messages
+
+def getAllFolders(host_id):
+    folders = AddFolder.objects.filter(host_id=host_id)
+    for delete_folder in DeleteFolder.objects.filter(host_id=host_id):
+        folders = folders.exclude(uuid=delete_folder.uuid)
+
+    return folders
+
 def show_messages(request, active_host, active_folder_id):
     if not request.user.is_authenticated():
         return redirect('login')
@@ -83,22 +97,19 @@ def show_messages(request, active_host, active_folder_id):
     change_folder_form = ChangeFolderForm(active_host=active_host, active_folder_id=active_folder_id)
 
     # get all messages in current folder
-    messages = AddMessage.objects.all()
-    for delete_message in DeleteMessage.objects.all():
-        messages = messages.exclude(uuid=delete_message.uuid)
+    messages = getAllMessages(active_host)
+    print messages
 
-    messages = messages.filter(host_id=active_host).order_by('-date')
+    messages = messages.order_by('-date')
     if active_folder_id == 'None':
         messages = messages.filter(folder_id=None)
     else:
         messages = messages.filter(folder_id=active_folder_id)
 
     # get all folder
-    folders = AddFolder.objects.all()
-    for delete_folder in DeleteFolder.objects.all():
-        folders = folders.exclude(uuid=delete_folder.uuid)
+    folders = getAllFolders(active_host)
 
-    folders = folders.filter(host_id=active_host).order_by('title')
+    folders = folders.order_by('title')
 
     data = {'form': form, 'change_folder_form': change_folder_form,'messages': messages, 'folders': folders, 'other_hosts': other_hosts, 'running_host': running_host['id'], 'active_host': int(active_host), 'active_folder': active_folder}
 
@@ -201,7 +212,11 @@ def delete_folder(request, active_host, active_folder_id):
     for host in other_hosts:
         queue[host['id']].put(delete_folder.to_dict(request.user.username))
 
-    for add_message in AddMessage.objects.filter(folder_id=add_folder.uuid):
+    messages = getAllMessages(active_host)
+    messages = messages.filter(folder_id=add_folder.uuid)
+
+    for add_message in messages:
+        print add_message
         delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id)
         for host in other_hosts:
             queue[host['id']].put(delete_message.to_dict(request.user.username, 'delete'))

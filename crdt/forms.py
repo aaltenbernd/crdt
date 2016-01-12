@@ -4,19 +4,24 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate
 
-from .models import AddMessage, AddFolder
+from .models import AddMessage, AddFolder, DeleteFolder
 
 class ChangeFolderForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		self.active_host = kwargs.pop('active_host')
 		self.active_folder_id = kwargs.pop('active_folder_id')
+		self.folders = AddFolder.objects.filter(host_id=self.active_host)
+		self.del_folders = DeleteFolder.objects.filter(host_id=self.active_host)
+		for del_folder in self.del_folders:
+			self.folders = self.folders.exclude(uuid=del_folder.uuid)
 		super(ChangeFolderForm, self).__init__(*args, **kwargs)
+
 		if self.active_folder_id == 'None':
 			self.fields['folder_choice'].empty_label = None
-			self.fields['folder_choice'].queryset = AddFolder.objects.filter(host_id=self.active_host)
+			self.fields['folder_choice'].queryset = self.folders
 		else:
 			self.fields['folder_choice'].empty_label = "Inbox"
-			self.fields['folder_choice'].queryset = AddFolder.objects.filter(host_id=self.active_host).exclude(uuid=self.active_folder_id)
+			self.fields['folder_choice'].queryset = self.folders.exclude(uuid=self.active_folder_id)
 		
 
 	folder_choice = forms.ModelChoiceField(queryset = AddFolder.objects.none(), required=False, empty_label=None, label='Folder', widget = forms.Select(attrs={'class': "form-control"}))
@@ -43,7 +48,11 @@ class AddFolderForm(forms.Form):
 		if len(title) > 10:
 			self._errors['title_length'] = "The folder title exceeds maximum length of 10 characters!"
 
-		if AddFolder.objects.filter(title=title, host_id=self.host_id):
+		folders = AddFolder.objects.filter(host_id=self.host_id)
+		for delete_folder in DeleteFolder.objects.filter(host_id=self.host_id):
+			folders = folders.exclude(uuid=delete_folder.uuid)
+
+		if folders.filter(title=title):
 			self._errors['title_unique'] = "The title musst be unique!"
 
 		return title
