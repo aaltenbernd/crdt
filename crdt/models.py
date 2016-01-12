@@ -66,7 +66,7 @@ class AddMessage(models.Model):
 	author = models.CharField(max_length=10, default="myself")
 	host_id = models.IntegerField()
 	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-	folder = models.ForeignKey(AddFolder, null=True)
+	folder_id = models.UUIDField(editable=True, default=None, null=True)
 
 	def __str__(self):
 		return 'MESSAGE_GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
@@ -80,10 +80,7 @@ class AddMessage(models.Model):
 		message_dict['date'] = str(self.date)
 		message_dict['operation'] = operation
 		message_dict['username'] = username
-		if self.folder == None:
-			message_dict['folder'] = 'None'
-		else:
-			message_dict['folder'] = self.folder.uuid
+		message_dict['folder_id'] = self.folder_id
 		return message_dict
 
 class DeleteMessage(models.Model):
