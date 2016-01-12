@@ -77,7 +77,7 @@ def show_messages(request, active_host, active_folder_id):
             return redirect('show_messages', active_host, active_folder_id)
 
     form = AddFolderForm()
-    change_folder_form = ChangeFolderForm()
+    change_folder_form = ChangeFolderForm(active_host=active_host)
 
     # get all messages in current folder
     messages = AddMessage.objects.all()
@@ -107,7 +107,7 @@ def change_folder(request, active_host, active_folder_id, message_id):
 
     if request.method == 'POST':
 
-        form = ChangeFolderForm(request.POST)
+        form = ChangeFolderForm(request.POST, active_host=active_host)
 
         if form.is_valid():
             folder_choice = request.POST.get('folder_choice')

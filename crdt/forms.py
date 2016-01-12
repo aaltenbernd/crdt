@@ -7,7 +7,13 @@ from django.contrib.auth import authenticate
 from .models import AddMessage, AddFolder
 
 class ChangeFolderForm(forms.Form):
-	folder_choice = forms.ModelChoiceField(label='Folder', empty_label="Inbox", queryset = AddFolder.objects.all(), widget=forms.Select(attrs={'class': "form-control"}), required=False)
+	def __init__(self, *args, **kwargs):
+		self.active_host = kwargs.pop('active_host')
+		super(ChangeFolderForm, self).__init__(*args, **kwargs)
+		print self.active_host
+		self.fields['folder_choice'].queryset = AddFolder.objects.filter(host_id=self.active_host)
+
+	folder_choice = forms.ModelChoiceField(queryset = AddFolder.objects.none(), required=False, empty_label="Inbox", label='Folder', widget = forms.Select(attrs={'class': "form-control"}))
 
 	def clean(self):
 		folder_choice = self.cleaned_data['folder_choice']
