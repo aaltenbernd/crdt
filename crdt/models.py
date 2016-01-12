@@ -80,10 +80,8 @@ class AddMessage(models.Model):
 		message_dict['date'] = str(self.date)
 		message_dict['operation'] = operation
 		message_dict['username'] = username
-		if self.folder == None:
-			message_dict['folder'] = 'Inbox'
-		else:
-			message_dict['folder'] = self.folder
+		message_dict['folder'] = 'Inbox'
+		message_dict['folder'] = self.folder.uuid
 		return message_dict
 
 class DeleteMessage(models.Model):

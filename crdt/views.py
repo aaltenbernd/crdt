@@ -221,8 +221,6 @@ def receive(request):
     if request.method == 'POST':
         data = request.POST.dict()
 
-        print data.pop('folder')
-
         print "[RECEIVED] " + data['operation']
 
         csrftoken = data.pop('csrfmiddlewaretoken')
@@ -236,6 +234,9 @@ def receive(request):
             user.userprofile.save()
         if operation == 'add':
             add_message = AddMessage(**data)
+            folder_id = data.pop('folder')
+            if folder_id is not None:
+                add_message.folder = AddFolder.objects.get(uuid=folder_id)
             add_message.save()
         if operation == 'delete':
             delete_message = DeleteMessage(**data)
