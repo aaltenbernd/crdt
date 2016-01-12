@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>CRDT</title>
+    <title>crdt mail service | Messages </title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -47,11 +47,7 @@
                     <li class="active" ><a href="{% url 'show_messages' host.id active_folder.uuid %}">Host {{ host.id }}</a></li>
                     {% endif %}
                 {% else %}
-                    {% if active_folder == None %}
                     <li><a href="{% url 'show_messages' host.id None %}">Host {{ host.id }}</a></li>
-                    {% else %}
-                    <li><a href="{% url 'show_messages' host.id active_folder.uuid %}">Host {{ host.id }}</a></li>
-                    {% endif %}
                 {% endif %}
             {% endfor %} {% endif %}
             {% if running_host == active_host %}
@@ -61,11 +57,7 @@
                 <li class="active"><a href="{% url 'show_messages' running_host active_folder.uuid %}">Outbox</a></li>
                 {% endif %}
             {% else %}
-                {% if active_folder == None %}
                 <li><a href="{% url 'show_messages' running_host None %}">Outbox</a></li>
-                {% else %}
-                <li><a href="{% url 'show_messages' running_host active_folder.uuid %}">Outbox</a></li>
-                {% endif %}
             {% endif %}
             <li><a href="{% url 'delete_all' %}">Delete All</a></li>
             <li><a href="{% url 'logout' %}">Logout</a></li>

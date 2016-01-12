@@ -25,6 +25,8 @@ def index(request):
     if not request.user.is_authenticated():
         return redirect('login')
 
+    form = AddMessageForm()
+
     if request.method == 'POST':
 
         form = AddMessageForm(request.POST)
@@ -45,8 +47,6 @@ def index(request):
 
             return redirect('index')
 
-    form = AddMessageForm()
-
     data = {'form': form, 'other_hosts': other_hosts, 'running_host': running_host['id']}
 
     return render(request, 'index.html', data)
@@ -63,8 +63,10 @@ def show_messages(request, active_host, active_folder_id):
     else:
         active_folder = AddFolder.objects.get(uuid=active_folder_id)
 
+    form = AddFolderForm(host_id=active_host)
+
     if request.method == 'POST':
-        form = AddFolderForm(request.POST)
+        form = AddFolderForm(request.POST, host_id=active_host)
 
         if form.is_valid():
             title = request.POST.get('title')
@@ -76,8 +78,9 @@ def show_messages(request, active_host, active_folder_id):
 
             return redirect('show_messages', active_host, active_folder_id)
 
-    form = AddFolderForm()
-    change_folder_form = ChangeFolderForm(active_host=active_host)
+
+
+    change_folder_form = ChangeFolderForm(active_host=active_host, active_folder_id=active_folder_id)
 
     # get all messages in current folder
     messages = AddMessage.objects.all()
@@ -107,26 +110,29 @@ def change_folder(request, active_host, active_folder_id, message_id):
 
     if request.method == 'POST':
 
-        form = ChangeFolderForm(request.POST, active_host=active_host)
+        form = ChangeFolderForm(request.POST, active_host=active_host, active_folder_id=active_folder_id)
 
         if form.is_valid():
             folder_choice = request.POST.get('folder_choice')
+
+            if not folder_choice:
+                folder_choice = None
    
             add_message = AddMessage.objects.get(uuid=message_id)
 
             if add_message is None:
                 return redirect('show_messages', active_host, active_folder_id)
 
-            if add_message.folder_id == folder_choice:
+            print '[Folder id:] ' + str(add_message.folder_id)
+            print '[Folder choice:] ' + str(folder_choice)
+
+            if str(add_message.folder_id) == str(folder_choice):
                 print '[same folder]'
                 return redirect('show_messages', active_host, active_folder_id)
 
             delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id)
 
-            if not folder_choice:
-                new_message = AddMessage.objects.create(text=add_message.text, host_id=add_message.host_id, folder_id=None)
-            else:
-                new_message = AddMessage.objects.create(text=add_message.text, host_id=add_message.host_id, folder_id=folder_choice)
+            new_message = AddMessage.objects.create(text=add_message.text, host_id=add_message.host_id, folder_id=folder_choice)
 
             for host in other_hosts:
                 queue[host['id']].put(delete_message.to_dict(request.user.username, 'delete'))

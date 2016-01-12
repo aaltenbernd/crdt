@@ -9,11 +9,20 @@ from .models import AddMessage, AddFolder
 class ChangeFolderForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		self.active_host = kwargs.pop('active_host')
+		self.active_folder_id = kwargs.pop('active_folder_id')
 		super(ChangeFolderForm, self).__init__(*args, **kwargs)
-		print self.active_host
-		self.fields['folder_choice'].queryset = AddFolder.objects.filter(host_id=self.active_host)
+		print self.active_folder_id
+		if self.active_folder_id == 'None':
+			print 'no'
+			self.fields['folder_choice'].empty_label = None
+			self.fields['folder_choice'].queryset = AddFolder.objects.filter(host_id=self.active_host)
+		else:
+			print 'yes'
+			self.fields['folder_choice'].empty_label = "Inbox"
+			self.fields['folder_choice'].queryset = AddFolder.objects.filter(host_id=self.active_host).exclude(uuid=self.active_folder_id)
+		
 
-	folder_choice = forms.ModelChoiceField(queryset = AddFolder.objects.none(), required=False, empty_label="Inbox", label='Folder', widget = forms.Select(attrs={'class': "form-control"}))
+	folder_choice = forms.ModelChoiceField(queryset = AddFolder.objects.none(), required=False, empty_label=None, label='Folder', widget = forms.Select(attrs={'class': "form-control"}))
 
 	def clean(self):
 		folder_choice = self.cleaned_data['folder_choice']
@@ -21,6 +30,10 @@ class ChangeFolderForm(forms.Form):
 		return folder_choice
 
 class AddFolderForm(forms.Form):
+	def __init__(self, *args, **kwargs):
+		self.host_id = kwargs.pop('host_id')
+		super(AddFolderForm, self).__init__(*args, **kwargs)
+
 	title = forms.CharField(required=False, widget=forms.TextInput(
 		attrs={'class': 'form-control', 'placeholder': 'Foldertitle'}))
 
@@ -28,10 +41,13 @@ class AddFolderForm(forms.Form):
 		title = self.cleaned_data['title']
 
 		if len(title) == 0:
-			self._errors['title_empty'] = "No empty messages allowed"
+			self._errors['title_empty'] = "No empty folder title allowed!"
 
 		if len(title) > 10:
-			self._errors['title_length'] = "The title exceeds maximum length of 10 characters"
+			self._errors['title_length'] = "The folder title exceeds maximum length of 10 characters!"
+
+		if AddFolder.objects.filter(title=title, host_id=self.host_id):
+			self._errors['title_unique'] = "The title musst be unique!"
 
 		return title
 
@@ -46,10 +62,10 @@ class AddMessageForm(forms.Form):
 		to = self.cleaned_data['to']
 
 		if len(text) == 0:
-			self._errors['text_empty'] = "No empty messages allowed"
+			self._errors['text_empty'] = "No empty messages allowed!"
 
 		if len(text) > 320:
-			self._errors['text_length'] = "The text exceeds maximum length of 320 characters"
+			self._errors['text_length'] = "The message exceeds maximum length of 320 characters!"
 
 		return text, to
 
