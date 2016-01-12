@@ -50,7 +50,7 @@ class DeleteFolder(models.Model):
 	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 	def __str__(self):
-		return self.title
+		return self.uuid
 
 	def to_dict(self, username):
 		folder_dict = {}

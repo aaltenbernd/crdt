@@ -187,23 +187,27 @@ def delete(request, active_host, active_folder_id, message_id):
 
     return redirect('show_messages', active_host, active_folder_id)
 
-def delete_folder(request, active_host):
+def delete_folder(request, active_host, active_folder_id):
     if not request.user.is_authenticated():
         return redirect('login')
-    
-    uuid = request.GET.get('id', '')
 
-    try:
-        add_folder = AddFolder.objects.filter(uuid=uuid)[0]
-    except(IndexError, ValueError):
-        return redirect('index')
+    add_folder = AddFolder.objects.get(uuid=active_folder_id)
+
+    if add_folder == None:
+        return redirect('show_messages', active_host, active_folder_id)
 
     delete_folder = DeleteFolder.objects.create(uuid=add_folder.uuid, host_id=add_folder.host_id)
 
     for host in other_hosts:
-        queue[host['id']].put(delete_folder.to_dict(request.user.username))   
+        queue[host['id']].put(delete_folder.to_dict(request.user.username))
 
-    return redirect('show_messages', active_host)
+    for add_message in AddMessage.objects.filter(folder_id=add_folder.uuid):
+        delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id)
+        for host in other_hosts:
+            queue[host['id']].put(delete_message.to_dict(request.user.username, 'delete'))
+
+    return redirect('show_messages', active_host, None)
+
 
 # just for cleaning up (DEBUG)
 def delete_all(request):

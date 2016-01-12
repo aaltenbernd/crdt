@@ -66,7 +66,6 @@
         <div class="row">
             <div class="col-sm-3">
                 <h5>folders:</h5>
-
                 <ul class="nav nav-pills nav-stacked">
                     {% if active_folder == None %}
                         <li class="active"><a href="{% url 'show_messages' active_host None %}">Inbox</a></li>
@@ -98,12 +97,24 @@
                         {% endfor %} {% endif %}                    
                         <div class="coll-xs-12">
                             {{ form.title }}</br>
-                            <button class="btn btn-default" type="submit" value="Submit">
+                            <button class="btn btn-default btn-block btn-sm" type="submit" value="add">
                                 Add Folder
-                            </button>    
+                            </button>
                         </div>
                     </form>
                 </div>
+
+                {% if active_folder != None %}
+                <h5>delete selected folder:</h5>
+
+                <div>
+                    <a href="{% url 'delete_folder' active_host active_folder.uuid %}">
+                        <button class="btn btn-default btn-block btn-sm" type="submit" value="Submit">
+                            Delete Folder
+                        </button> 
+                    </a>
+                </div>
+                {% endif %}
             </div>
 
 

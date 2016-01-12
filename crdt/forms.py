@@ -11,13 +11,10 @@ class ChangeFolderForm(forms.Form):
 		self.active_host = kwargs.pop('active_host')
 		self.active_folder_id = kwargs.pop('active_folder_id')
 		super(ChangeFolderForm, self).__init__(*args, **kwargs)
-		print self.active_folder_id
 		if self.active_folder_id == 'None':
-			print 'no'
 			self.fields['folder_choice'].empty_label = None
 			self.fields['folder_choice'].queryset = AddFolder.objects.filter(host_id=self.active_host)
 		else:
-			print 'yes'
 			self.fields['folder_choice'].empty_label = "Inbox"
 			self.fields['folder_choice'].queryset = AddFolder.objects.filter(host_id=self.active_host).exclude(uuid=self.active_folder_id)
 		
