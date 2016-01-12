@@ -233,11 +233,11 @@ def receive(request):
             user.userprofile.increment()
             user.userprofile.save()
         if operation == 'add':
-            add_message = AddMessage(**data)
             folder_id = data.pop('folder')
+            add_message = AddMessage(**data)
             print folder_id
-            #if folder_id != 'None':
-            #    add_message.folder = AddFolder.objects.get(uuid=folder_id)
+            if folder_id != 'None':
+                add_message.folder = AddFolder.objects.get(uuid=folder_id)
             add_message.save()
         if operation == 'delete':
             delete_message = DeleteMessage(**data)
