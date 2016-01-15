@@ -1,6 +1,6 @@
-### Bachelor-Thesis : Entwicklung eines verteilten Nachrichtensystems mit optimistischer Replikation
+#### Bachelor-Thesis : Entwicklung eines verteilten Nachrichtensystems mit optimistischer Replikation
 
-#### Anleitung zum Ausführen
+##### Anleitung zum Ausführen
 
 * Jeder Host ist als Paar mit ID und PORT gespeichert
 * Die Standardkonfiguration hat drei Hosts 
