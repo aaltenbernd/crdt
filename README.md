@@ -9,7 +9,7 @@
 	* ID = 2 und PORT = 8002
 * Hosts können mit Angabe der ID (und PORT) gestartet, hinzugefügt und gelöscht werden
 
-###### Host start:
+###### Host starten:
 
 ```
 python manage.py start_host ID
