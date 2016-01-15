@@ -125,14 +125,18 @@
                 
 
                 {% for message in messages %}
-                <div class="well">
+                <div class="row">
                     <div class="col-sm-8">
-                        <p>uuid : {{ message.uuid }}</p>
-                        <p>from : {{ message.author }}</p>
-                        <p>date : {{ message.date }}</p>
-                        <p>text : {{ message.text }}</p>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">{{ message.uuid }}</div>
+                            <div class="panel-body">
+                                <p>from : {{ message.author }}</p>
+                                <p>date : {{ message.date }}</p>
+                                <p>text : {{ message.text }}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="well">
+                    <div class="col-sm-4">
                         {% if active_folder == None %}
                         <form action="{% url 'change_folder' active_host None message.uuid %}" method="post">
                         {% else %}
@@ -156,8 +160,10 @@
                     </div>
                 </div></br>
                 {% empty %}
-                    <div class="well">
-                        Sorry, no messages.
+                    <div class="row">
+                        <div class="col-sm-12">
+                            Sorry, no messages.
+                        </div>
                     </div> 
                 {% endfor %}
             </div>
