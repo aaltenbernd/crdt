@@ -2,29 +2,28 @@
 
 #### Anleitung zum Ausführen
 
-##### Host hinzufügen/löschen:
+* Jeder Host ist als Paar mit ID und PORT gespeichert
+* Die Standardkonfiguration hat drei Hosts 
+	* ID = 0 und PORT = 8000
+	* ID = 1 und PORT = 8001
+	* ID = 2 und PORT = 8002
+* Hosts können mit Angabe der ID (und PORT) gestartet, hinzugefügt und gelöscht werden:
 
-###### Hinweis: 
-
-Hosts können in der host_list Datei angepasst werden.
-Neue Hosts müssen in Form eines Dictonary mit id und port des Hosts in der host_list hinzugefügt werden:
-
-```
-{'id': id, 'port': port}
-```
-
-Die standard Konfiguration ist für drei Server ausgelegt: 
+###### Host start:
 
 ```
-{'id' : 0, 'port' : 8000}
-{'id' : 1, 'port' : 8001}
-{'id' : 2, 'port' : 8002}
+python manage.py start_host ID
 ```
 
-##### Host mit id starten:
-
-###### Hinweis: id muss in host_list vorkommen.
+###### Host hinzufügen:
 
 ```
-python manage.py start id
+python manage.py add_host ID PORT
 ```
+
+###### Host löschen:
+
+```
+python manage.py delete_host ID
+```
+
