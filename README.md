@@ -2,27 +2,29 @@
 
 #### Anleitung zum Ausführen
 
-##### 
+##### Host hinzufügen/löschen:
 
-1. clone repository:
-	```
-	clone git clone https://github.com/aaltenbernd/crdt.git folder
-	```
-2. go to folder: 
-	```
-	cd folder
-	```
-3. configure host_list file:
-	1. choose an id and a related port number for each server
-	2. write id and port as dictonary {'id': choosen_id, 'port': choosen_port}
-	3. write each server dictornary in one line of host_list file
-	4. example:
-	```
-	{'id' : 0, 'port' : 8000}
-	{'id' : 1, 'port' : 8001}
-	{'id' : 2, 'port' : 8002}
-	```
-4. start server with choosen id:
-	```
-	python manage.py start ID
-	```
+###### Hinweis: 
+
+Hosts können in der host_list Datei angepasst werden.
+Neue Hosts müssen in Form eines Dictonary mit id und port des Hosts in der host_list hinzugefügt werden:
+
+```
+{'id': id, 'port': port}
+```
+
+Die standard Konfiguration ist für drei Server ausgelegt: 
+
+```
+{'id' : 0, 'port' : 8000}
+{'id' : 1, 'port' : 8001}
+{'id' : 2, 'port' : 8002}
+```
+
+##### Host mit id starten:
+
+###### Hinweis: id muss in host_list vorkommen.
+
+```
+python manage.py start id
+```
