@@ -1,54 +1,99 @@
 from django.db import models
 from django.utils import timezone
-import Queue
+from django.contrib.auth.models import User
 
-# localHost
-HOSTNAME = "http://127.0.0.1"
+import uuid
 
-# each number saves a title, a value and a date
-# increment / decrement are commutative operations
-# which can be executed without consider the order
-# title is not unique right now
-# date saves the creationdate 
-class Number(models.Model):
-	title = models.CharField(max_length=10, blank=True, unique=True)
-	number = models.IntegerField(default=0)
-	date = models.DateTimeField(default=timezone.now)
+# used in python manage.py init
+# creates a user with given username and passwrd
+def createUser(username, password):
+	user = User.objects.create_user(username=username, password=password)
+	profile = UserProfile.objects.create(user=user)
+	user.userprofile = profile
+	return
+
+# user have a distributed counter
+# counter is used for global id in message model
+# increment / decrement commutative operations on counter
+class UserProfile(models.Model):
+	user = models.OneToOneField(User)
+	counter = models.IntegerField(default=0)
 
 	def __str__(self):
-		return str(self.title)
+		return str(self.user) + ":" + str(self.counter)
 
 	def increment(self):
-		self.number = self.number + 1
+		self.counter = self.counter + 1
 
 	def decrement(self):
-		self.number = self.number - 1
+		self.counter = self.counter - 1
 
-	def delete(self, *args, **kwargs):
-		super(Number, self).delete(*args, **kwargs)
-
-# each node saves the port and the open operations
-# the full address of the node is given by str(Node) = http://127.0.0.1:PORT
-# the operations have to be send to the HOST
-class Node(models.Model):
-	port = models.IntegerField(default="8000")
-	open_ops = models.ManyToManyField('OutgoingOperation', related_name='open_operation', blank=True)
+class AddFolder(models.Model):
+	title = models.CharField(max_length=10)
+	host_id = models.IntegerField()
+	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 	def __str__(self):
-		return HOSTNAME + ':' + str(self.port)
+		return self.title
 
-# saves the open operation which has to be send to other hosts
-class OutgoingOperation(models.Model):
-	operation = models.CharField(max_length=20)
-	num = models.CharField(max_length=10)
+	def to_dict(self, username):
+		folder_dict = {}
+		folder_dict['uuid'] = self.uuid
+		folder_dict['host_id'] = self.host_id
+		folder_dict['title'] = self.title
+		folder_dict['operation'] = 'add_folder'
+		folder_dict['username'] = username
+		return folder_dict
+
+class DeleteFolder(models.Model):
+	host_id = models.IntegerField()
+	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 	def __str__(self):
-		return "Operation: " + self.operation + " to " + self.num
+		return self.uuid
 
-# saves the open operation which has to be executed
-class IncomingOperation(models.Model):
-	operation = models.CharField(max_length=20)
-	num = models.CharField(max_length=10)
+	def to_dict(self, username):
+		folder_dict = {}
+		folder_dict['uuid'] = self.uuid
+		folder_dict['host_id'] = self.host_id
+		folder_dict['operation'] = 'delete_folder'
+		folder_dict['username'] = username
+		return folder_dict
+
+class AddMessage(models.Model):
+	text = models.CharField(max_length=320)
+	date = models.DateTimeField(default=timezone.now)
+	author = models.CharField(max_length=10, default="myself")
+	host_id = models.IntegerField()
+	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+	folder_id = models.UUIDField(editable=True, default=None, null=True)
 
 	def __str__(self):
-		return "Operation: " + self.operation + " to " + self.num
+		return 'MESSAGE_GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
+
+	def to_dict(self, username, operation):
+		message_dict = {}
+		message_dict['uuid'] = self.uuid
+		message_dict['host_id'] = self.host_id
+		message_dict['author'] = self.author
+		message_dict['text'] = self.text
+		message_dict['date'] = str(self.date)
+		message_dict['operation'] = operation
+		message_dict['username'] = username
+		message_dict['folder_id'] = self.folder_id
+		return message_dict
+
+class DeleteMessage(models.Model):
+	host_id = models.IntegerField()
+	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+	def __str__(self):
+		return 'MESSAGE_GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
+
+	def to_dict(self, username, operation):
+		message_dict = {}
+		message_dict['uuid'] = self.uuid
+		message_dict['host_id'] = self.host_id		
+		message_dict['operation'] = operation
+		message_dict['username'] = username
+		return message_dict

@@ -1,7 +1,8 @@
 from django.contrib import admin
-from .models import Number, Node, IncomingOperation, OutgoingOperation
+from .models import UserProfile, AddMessage, AddFolder, DeleteFolder, DeleteMessage
 
-admin.site.register(Number)
-admin.site.register(Node)
-admin.site.register(IncomingOperation)
-admin.site.register(OutgoingOperation)
+admin.site.register(UserProfile)
+admin.site.register(AddMessage)
+admin.site.register(DeleteMessage)
+admin.site.register(AddFolder)
+admin.site.register(DeleteFolder)

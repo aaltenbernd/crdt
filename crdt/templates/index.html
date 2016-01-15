@@ -1,76 +1,73 @@
 {% load staticfiles %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>CRDT</title>
+    <title>crdt mail service | Send</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-    <script src="{% static 'js/min/jquery-min.js' %}"></script>
-    <script src="{% static 'js/min/bootstrap-min.js' %}"></script>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 </head>
 
-<body>    
+<style>
+    .nav-pills > li.active > a {
+        color:black;
+        background-color:#cccccc;
+    }
+    .nav-pills > li > a:hover {
+        color:black;
+        background-color:#cccccc;
+    }
+    .nav-pills > li.active > a:hover {
+        color:black;
+        background-color:#cccccc;
+    }
+    .nav-pills > li > a:hover {
+        color:black;
+        background-color:#cccccc;
+    }
+    .nav-pills > li > a {
+        color:black;
+    }
+</style>
+
+<body>
     <div class="container">
+
+        <h2>crdt mail service</h2>
+
+        <ul class="nav nav-pills">
+            <li class="active"><a href="{% url 'index' %}">Send</a></li>
+            {% if other_hosts %} {% for host in other_hosts %}
+                <li><a href="{% url 'show_messages' host.id None %}">Host {{ host.id }}</a></li>
+            {% endfor %} {% endif %}
+            <li><a href="{% url 'show_messages' running_host None %}">Outbox</a></li>
+            <li><a href="{% url 'delete_all' %}">Delete All</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+        </ul>
+
+        <h5>send a message:</h5>
+
         <div class="row">
             <div class="col-xs-12">
-                <h3>Numbers</h3>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-xs-12">
-                <a href="{% url 'delete_all' %}"
-                        <button class="btn btn-default" type="submit" value="Submit">
-                            Delete All
-                        </button>
-                </a></br></br>
                 <form action="{% url 'index' %}" method="post">
                     {% csrf_token %} 
                     {% if form.errors %} {% for error in form.errors.items %}
                         <div class="alert alert-danger" role="alert">
                             <label class="control-label">* {{ error.1 }}</label>
                         </div>
-                    {% endfor %} {% endif %}                    
-                    <div class="coll-xs-12">
-                        <div class="well well-sm">
-                            {{ form.title.label_tag }}
-                            {{ form.title }}</br>
-                            <button class="btn btn-default" type="submit" value="Submit">
-                                Add
-                            </button>
-                        </div>
+                    {% endfor %} {% endif %}                   
+                    <div>
+                        {{ form.to }}</br>
+                        {{ form.text }}</br>
+                        <button class="btn btn-default" type="submit" value="Submit">
+                            Send
+                        </button>    
                     </div>
                 </form>
-                {% if numbers %} {% for number in numbers %}
-                </br>
-                <div class="well well-sm">
-                    <strong>{{ number.title }} <!-- - {{ number.date }}--></strong></br></br>
-                    <div class="well well-sm">
-                        <strong>
-                            <center>
-                                {{ number.number }}
-                            </center>
-                        </strong>
-                    </div>                    
-                    <a href="{% url 'increment' %}?id={{ number.id }}"
-                        <button class="btn btn-default btn-block" type="submit" value="Submit">
-                            +
-                        </button>
-                    </a></br>
-                    <a href="{% url 'decrement' %}?id={{ number.id }}"
-                        <button class="btn btn-default btn-block" type="submit" value="Submit">
-                            -
-                        </button>
-                    </a></br>
-                    <!--<a href="{% url 'delete' %}?id={{ number.id }}"
-                        <button class="btn btn-default" type="submit" value="Submit">
-                            Delete
-                        </button>
-                    </a></br>-->
-                </div>
-                {% endfor %} {% endif %}
-            </div> 
+            </div>
         </div>
+    </div>
 </body>
 </html>
