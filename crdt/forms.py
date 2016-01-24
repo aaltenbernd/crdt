@@ -49,14 +49,14 @@ class AddFolderForm(forms.Form):
 		return title
 
 class AddMessageForm(forms.Form):
-	to = forms.CharField(required=False, widget=forms.TextInput(
-		attrs={'class': 'form-control input-sm', 'placeholder': 'myself', 'readonly':'readonly'}))
+
 	text = forms.CharField(required=False, widget=forms.Textarea(
         attrs={'class': 'form-control text-input input-sm', 'placeholder': 'Message', 'rows': '3', 'style':'resize:none;'}))
 
+	reader = forms.ModelChoiceField(queryset = User.objects.all(), required = False, empty_label = None, label='Reader', widget = forms.Select(attrs={'class': "form-control"}))
 	def clean(self):
 		text = self.cleaned_data['text']
-		to = self.cleaned_data['to']
+		reader = self.cleaned_data['reader']
 
 		if len(text) == 0:
 			self._errors['text_empty'] = "No empty messages allowed!"
@@ -64,7 +64,7 @@ class AddMessageForm(forms.Form):
 		if len(text) > 320:
 			self._errors['text_length'] = "The message exceeds maximum length of 320 characters!"
 
-		return text, to
+		return text, reader
 
 class LoginForm(forms.Form):
 	username = forms.CharField(label='Username', widget=forms.TextInput(attrs={'class': "form-control input-sm"}),required=False)
@@ -77,8 +77,7 @@ class LoginForm(forms.Form):
 		try:
 			user = User.objects.get(username=username)
 		except ObjectDoesNotExist:
-			self._errors['user_not_exit'] = "User don't exist."
-			return username, password
+			self._errors['user_not_exist'] = "User don't exist."
 
 		user = authenticate(username=username, password=password)
 
@@ -86,3 +85,30 @@ class LoginForm(forms.Form):
 			self._errors['wrong_password'] = "Wrong password."
 
 		return user, password
+
+class RegisterForm(forms.Form):
+	username = forms.CharField(label='Username', widget=forms.TextInput(attrs={'class': "form-control"}),required=False)
+	password = forms.CharField(label='Password', widget=PasswordInput(attrs={'class': "form-control"}), required=False)
+	password_confirm = forms.CharField(label='Password Confirm', widget=PasswordInput(attrs={'class': "form-control"}), required=False)
+
+	def clean(self):
+		username = self.cleaned_data['username']
+		password = self.cleaned_data['password']
+		password_confirm = self.cleaned_data['password_confirm']
+
+		if len(username) == 0:
+			self._errors['username_empty'] = "No empty username allowed."
+
+		if len(password) == 0:
+			self._errors['password_empty'] = "No empty password allowed."
+
+		try:
+			user = User.objects.get(username=username)
+			self._errors['username_exist'] = "Username allready exists."
+		except ObjectDoesNotExist:
+			pass
+
+		if password != password_confirm:
+			self._errors['password_match_error'] = "Passwords don't match."
+
+		return username, password

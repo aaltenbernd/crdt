@@ -14,4 +14,3 @@
 ```
 python manage.py run_host --settings=host_ID
 ```
-

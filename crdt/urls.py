@@ -5,6 +5,7 @@ urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^login$', views.login_view, name='login'),
     url(r'^logout$', views.logout_view, name='logout'),
+    url(r'^register$', views.register, name='register'),
     url(r'^delete_all$', views.delete_all, name='delete_all'),
     url(r'^show_messages/(?P<active_folder_id>[-\w]+)/$', views.show_messages, name='show_messages'),
     url(r'^delete/(?P<active_folder_id>[-\w]+)/(?P<message_id>[-\w]+)/$', views.delete, name='delete'),

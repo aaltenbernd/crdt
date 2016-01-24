@@ -1,11 +1,9 @@
 from django.shortcuts import render, redirect
-from django.utils import timezone
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.forms import model_to_dict
 
-from .models import AddMessage, DeleteMessage, AddFolder, DeleteFolder
-from .forms import AddMessageForm, AddFolderForm, LoginForm, ChangeFolderForm
+from .models import AddMessage, DeleteMessage, AddFolder, DeleteFolder, createUser
+from .forms import AddMessageForm, AddFolderForm, LoginForm, RegisterForm, ChangeFolderForm
 
 import thread
 import time
@@ -16,11 +14,6 @@ from django.conf import settings
 # localHost
 HOSTNAME = "http://127.0.0.1"
 
-# index page and add operation
-# create new message
-# get user 
-# increment counter -> call broadcast -> save outgoing operation
-# send message -> call broadcast -> save outgoing operation 
 def index(request):
     if not request.user.is_authenticated():
         return redirect('login')
@@ -33,8 +26,10 @@ def index(request):
 
         if form.is_valid():
             text = request.POST.get('text')
+            reader_id = request.POST.get('reader')
+            reader = User.objects.get(id=reader_id)
 
-            message = AddMessage.objects.create(text=text, host_id=settings.RUNNING_HOST['id'], color=settings.RUNNING_HOST['color'], folder_id=None, author=request.user.username)
+            message = AddMessage.objects.create(text=text, reader=reader, host_id=settings.RUNNING_HOST['id'], color=settings.RUNNING_HOST['color'], folder_id=None, author=request.user.username)
 
             user = request.user
 
@@ -160,8 +155,9 @@ def change_folder(request, active_folder_id, message_id):
 
     return redirect('show_messages', active_folder_id)
 
-# login for user session
 def login_view(request):
+    form = LoginForm()
+
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -174,15 +170,28 @@ def login_view(request):
 
             login(request,user)
 
-            form = LoginForm() 
-
             return redirect('index')
         else:
             return render(request, 'login.html', {'form': form})
-       
-    form = LoginForm() 
     
     return render(request, 'login.html', {'form': form})
+
+def register(request):
+    form = RegisterForm()
+
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            username = request.POST['username']
+            password = request.POST['password']
+
+            createUser(username, password)
+
+            return redirect('login')
+        else:
+            return render(request, 'register.html', {'form': form})
+
+    return render(request, 'register.html', {'form': form})
 
 # logout for user session
 def logout_view(request):
@@ -229,8 +238,6 @@ def delete_folder(request, active_folder_id):
 
     return redirect('show_messages', None)
 
-
-# just for cleaning up (DEBUG)
 def delete_all(request):
     if not request.user.is_authenticated():
         return redirect('login')
@@ -252,8 +259,6 @@ def delete_all(request):
 
     return redirect('index')
 
-# handle operations send by send_thread on other hosts
-# save incoming operation
 def receive(request):
     if request.method == 'POST':
         data = request.POST.dict()
@@ -286,7 +291,6 @@ def receive(request):
     else:   
         return redirect('index')
 
-# sending thread
 def send_thread(host):
     while True:
         if settings.QUEUE[host['id']].empty():

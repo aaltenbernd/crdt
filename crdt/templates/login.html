@@ -14,7 +14,7 @@
 <body>    
     <div class="container">
         <div class="row">
-            <div class="col-xs-12">
+            <div class="col-sm-12">
                 </br>
                 <form action="{% url 'login' %}" method="post">
                     {% csrf_token %} 
@@ -22,18 +22,22 @@
                         <div class="alert alert-danger" role="alert">
                             <label class="control-label">* {{ error.1 }}</label>
                         </div>
-                    {% endfor %} {% endif %}                    
-                    <div class="coll-xs-12">
-                        <div class="well well-sm">
-                            {{ form.username }}</br>
-                            {{ form.password }}</br>
-                            <button class="btn btn-default" type="submit" value="Submit">
-                                Login
-                            </button>
-                        </div>
-                    </div>
+                    {% endfor %} {% endif %}                  
+                    <p><strong>{{ form.username.label }}:</strong></p>
+                    {{ form.username }}</br>
+                    <p><strong>{{ form.password.label }}:</strong></p>
+                    {{ form.password }}</br>
+                    <button class="btn btn-default btn-block btn-sm" type="submit" value="Submit">
+                        Login
+                    </button>
                 </form>
-            </div> 
+                <a href="{% url 'register' %}">
+                    </br>
+                    <button class="btn btn-default btn-block btn-sm" type="submit" value="Submit">
+                        No account? Register!
+                    </button>
+                </a>
+            </div>  
         </div>
     </div>
 </body>

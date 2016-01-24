@@ -4,16 +4,15 @@ from django.contrib.auth.models import User
 
 import uuid
 
-# used in python manage.py init
-# creates a user with given username and passwrd
+# used in python manage.py start_host
+# creates a user with given username and password
 def createUser(username, password):
 	user = User.objects.create_user(username=username, password=password, is_staff=True, is_superuser=True)
 	profile = UserProfile.objects.create(user=user)
 	user.userprofile = profile
 	return
 
-# user have a distributed counter
-# counter is used for global id in message model
+# distributed counter counts messages per user
 # increment / decrement commutative operations on counter
 class UserProfile(models.Model):
 	user = models.OneToOneField(User)
@@ -66,6 +65,7 @@ class AddMessage(models.Model):
 	text = models.CharField(max_length=320)
 	date = models.DateTimeField(default=timezone.now)
 	author = models.CharField(max_length=10, default="myself")
+	reader = models.CharField(max_length=10, default="myself")
 	host_id = models.IntegerField()
 	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	folder_id = models.UUIDField(editable=True, default=None, null=True)
@@ -79,6 +79,7 @@ class AddMessage(models.Model):
 		message_dict['uuid'] = self.uuid
 		message_dict['host_id'] = self.host_id
 		message_dict['author'] = self.author
+		message_dict['reader'] = self.reader
 		message_dict['text'] = self.text
 		message_dict['date'] = str(self.date)
 		message_dict['operation'] = operation
