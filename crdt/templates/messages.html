@@ -44,7 +44,6 @@
         <h2 class="host_color">crdt mail service</h2>
 
         <ul class="nav nav-pills">
-            <li><a href="{% url 'index' %}">Send</a></li>
             <li class="active"><a href="{% url 'show_messages' None %}">Messages</a></li>
             <li><a href="{% url 'delete_all' %}">Delete All</a></li>
             <li><a href="{% url 'admin:index' %}">Admin</a></li>
@@ -53,6 +52,29 @@
 
         <div class="row">
             <div class="col-sm-3">
+                <h5>send a message:</h5>
+
+                <div class="row">
+                    <div class="col-xs-12">
+                        <form action="{% url 'send_message' %}" method="post">
+                            {% csrf_token %} 
+                            {% if add_message_form.errors %} {% for error in add_message_form.errors.items %}
+                                <div class="alert alert-danger" role="alert">
+                                    <label class="control-label">* {{ error.1 }}</label>
+                                </div>
+                            {% endfor %} {% endif %}                   
+                            <div>
+                                {{ add_message_form.reader }}</br>
+                                {{ add_message_form.text }}</br>
+                                <button class="btn btn-default btn-block btn-sm" type="submit" value="Submit">
+                                    Send
+                                </button>    
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
                 <h5>folders:</h5>
                 <ul class="nav nav-pills nav-stacked">
                     {% if active_folder == None %}
@@ -78,13 +100,13 @@
                     <form action="{% url 'add_folder' active_folder.uuid %}" method="post">
                     {% endif %}
                         {% csrf_token %} 
-                        {% if form.errors %} {% for error in form.errors.items %}
+                        {% if add_folder_form.errors %} {% for error in add_folder_form.errors.items %}
                             <div class="alert alert-danger" role="alert">
                                 <label class="control-label">* {{ error.1 }}</label>
                             </div>
                         {% endfor %} {% endif %}                    
                         <div class="coll-xs-12">
-                            {{ form.title }}</br>
+                            {{ add_folder_form.title }}</br>
                             <button class="btn btn-default btn-block btn-sm" type="submit" value="add">
                                 Add Folder
                             </button>
@@ -107,7 +129,6 @@
 
 
             <div class="col-sm-9">
-
                 
                 <h5>messages:</h5>
                 

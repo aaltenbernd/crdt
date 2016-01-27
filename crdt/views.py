@@ -15,6 +15,9 @@ from django.conf import settings
 HOSTNAME = "http://127.0.0.1"
 
 def index(request):
+    return redirect('show_messages', None)
+
+def send_message(request):
     if not request.user.is_authenticated():
         return redirect('login')
 
@@ -29,7 +32,10 @@ def index(request):
             reader_id = request.POST.get('reader')
             reader = User.objects.get(id=reader_id)
 
-            message = AddMessage.objects.create(text=text, reader=reader, host_id=settings.RUNNING_HOST['id'], color=settings.RUNNING_HOST['color'], folder_id=None, author=request.user.username)
+            if reader is None:
+                return redirect('index')
+
+            message = AddMessage.objects.create(text=text, reader=reader.username, host_id=settings.RUNNING_HOST['id'], color=settings.RUNNING_HOST['color'], folder_id=None, author=request.user.username)
 
             user = request.user
 
@@ -44,7 +50,7 @@ def index(request):
 
     data = {'form': form, 'host_color': settings.RUNNING_HOST['color']}
 
-    return render(request, 'index.html', data)
+    return redirect('index')
 
 def getAllMessages():
     messages = AddMessage.objects.all()
@@ -88,7 +94,8 @@ def show_messages(request, active_folder_id):
     else:
         active_folder = AddFolder.objects.get(uuid=active_folder_id)
 
-    form = AddFolderForm()
+    add_folder_form = AddFolderForm()
+    add_message_form = AddMessageForm()
     change_folder_form = ChangeFolderForm(active_folder_id=active_folder_id)
 
     # get all messages in current folder
@@ -105,7 +112,8 @@ def show_messages(request, active_folder_id):
 
     folders = folders.order_by('title')
 
-    data = {'form': form, 
+    data = {'add_message_form': add_message_form,
+            'add_folder_form': add_folder_form, 
             'change_folder_form': change_folder_form,
             'messages': messages, 
             'folders': folders, 

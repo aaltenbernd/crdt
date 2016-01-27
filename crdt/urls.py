@@ -12,5 +12,6 @@ urlpatterns = [
     url(r'^delete_folder/(?P<active_folder_id>[-\w]+)/$', views.delete_folder, name='delete_folder'),
     url(r'^change_folder/(?P<active_folder_id>[-\w]+)/(?P<message_id>[-\w]+)/$', views.change_folder, name='change_folder'),
     url(r'^add_folder/(?P<active_folder_id>[-\w]+)/$', views.add_folder, name='add_folder'),
+    url(r'^send_message$', views.send_message, name='send_message'),
     url(r'^receive/', views.receive, name='receive')
 ]

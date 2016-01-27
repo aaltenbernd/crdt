@@ -53,7 +53,7 @@ class AddMessageForm(forms.Form):
 	text = forms.CharField(required=False, widget=forms.Textarea(
         attrs={'class': 'form-control text-input input-sm', 'placeholder': 'Message', 'rows': '3', 'style':'resize:none;'}))
 
-	reader = forms.ModelChoiceField(queryset = User.objects.all(), required = False, empty_label = None, label='Reader', widget = forms.Select(attrs={'class': "form-control"}))
+	reader = forms.ModelChoiceField(queryset = User.objects.all().order_by('username'), required = False, empty_label = None, label='Reader', widget = forms.Select(attrs={'class': "form-control input-sm"}))
 	def clean(self):
 		text = self.cleaned_data['text']
 		reader = self.cleaned_data['reader']
@@ -87,9 +87,9 @@ class LoginForm(forms.Form):
 		return user, password
 
 class RegisterForm(forms.Form):
-	username = forms.CharField(label='Username', widget=forms.TextInput(attrs={'class': "form-control"}),required=False)
-	password = forms.CharField(label='Password', widget=PasswordInput(attrs={'class': "form-control"}), required=False)
-	password_confirm = forms.CharField(label='Password Confirm', widget=PasswordInput(attrs={'class': "form-control"}), required=False)
+	username = forms.CharField(label='Username', widget=forms.TextInput(attrs={'class': "form-control input-sm"}),required=False)
+	password = forms.CharField(label='Password', widget=PasswordInput(attrs={'class': "form-control input-sm"}), required=False)
+	password_confirm = forms.CharField(label='Password Confirm', widget=PasswordInput(attrs={'class': "form-control input-sm"}), required=False)
 
 	def clean(self):
 		username = self.cleaned_data['username']
