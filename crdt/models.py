@@ -7,7 +7,7 @@ import uuid
 # used in python manage.py init
 # creates a user with given username and passwrd
 def createUser(username, password):
-	user = User.objects.create_user(username=username, password=password)
+	user = User.objects.create_user(username=username, password=password, is_staff=True, is_superuser=True)
 	profile = UserProfile.objects.create(user=user)
 	user.userprofile = profile
 	return
@@ -32,6 +32,7 @@ class AddFolder(models.Model):
 	title = models.CharField(max_length=10)
 	host_id = models.IntegerField()
 	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+	color = models.CharField(max_length=30)
 
 	def __str__(self):
 		return self.title
@@ -43,6 +44,7 @@ class AddFolder(models.Model):
 		folder_dict['title'] = self.title
 		folder_dict['operation'] = 'add_folder'
 		folder_dict['username'] = username
+		folder_dict['color'] = self.color
 		return folder_dict
 
 class DeleteFolder(models.Model):
@@ -67,6 +69,7 @@ class AddMessage(models.Model):
 	host_id = models.IntegerField()
 	uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	folder_id = models.UUIDField(editable=True, default=None, null=True)
+	color = models.CharField(max_length=30)
 
 	def __str__(self):
 		return 'MESSAGE_GLOBAL_ID: ' + str(self.uuid) + ' | HOST_ID: ' + str(self.host_id)
@@ -81,6 +84,7 @@ class AddMessage(models.Model):
 		message_dict['operation'] = operation
 		message_dict['username'] = username
 		message_dict['folder_id'] = self.folder_id
+		message_dict['color'] = self.color
 		return message_dict
 
 class DeleteMessage(models.Model):
