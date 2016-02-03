@@ -1,5 +1,6 @@
 from django.conf.urls import url
 from . import views
+from . import api
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
@@ -13,5 +14,11 @@ urlpatterns = [
     url(r'^change_folder/(?P<active_folder_id>[-\w]+)/(?P<message_id>[-\w]+)/$', views.change_folder, name='change_folder'),
     url(r'^add_folder/(?P<active_folder_id>[-\w]+)/$', views.add_folder, name='add_folder'),
     url(r'^send_message$', views.send_message, name='send_message'),
-    url(r'^receive/', views.receive, name='receive')
+    url(r'^receive/', views.receive, name='receive'),
+
+    url(r'^api_login$', api.api_login),
+    url(r'^api_addMessage', api.api_addMessage),
+    url(r'^api_deleteMessage/(?P<message_id>[-\w]+)/$', api.api_deleteMessage),
+    url(r'^api_getCurrentState$', api.api_getCurrentState),
+    url(r'^api_getQueue$', api.api_getQueue)
 ]

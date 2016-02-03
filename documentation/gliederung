@@ -1,0 +1,44 @@
+Gliederung : Entwicklung eines verteilten Nachrichtensystems mit optimistischer Replikation
+
+
+I. Einleitung
+	1. Motivation
+	2. Ziel
+	3. Aufbau
+II. Theorie
+	1. Nachrichtensystem
+	2. Replikation
+	3. Pessimistische Replikation
+	4. Optimistische Replikation
+	5. Konsistenz
+	6. CRDT (Schwerpunkt)
+	7. Verteilter Zähler
+III. Methode und Ergebnis (Konzept und Implementierung trennen)
+	1. Nachrichten
+		1.1. Aufbau
+		1.2. Eindeutigkeit
+	2. Operationen
+		2.1. Senden
+		2.2. Löschen
+		2.3. Verteilung
+			2.3.1. Threads
+			2.3.2. HTTP-Requests
+	3. Ordnerstruktur
+		3.1. Erstellen
+		3.2. Löschen
+		3.3. Verschieben
+	4. Benutzer
+		4.1. User
+		4.2. Session
+	5. Benutzeroberfläche
+		5.1. Bootstrap (CSS/HTML/JavaScript)
+		5.2. View
+	6. Datenspeicherung
+		6.1. Models
+		6.2. SQLite
+IV. Diskusion (Evaluation)
+	1. Testumgebung
+	2. Skalierbarkeit
+	3. Konvergenzverhalten
+	4. Optimierung
+V. Fazit

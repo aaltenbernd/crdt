@@ -57,12 +57,12 @@
                 <div class="row">
                     <div class="col-xs-12">
                         <form action="{% url 'send_message' %}" method="post">
-                            {% csrf_token %} 
+                            {% csrf_token %}
                             {% if add_message_form.errors %} {% for error in add_message_form.errors.items %}
                                 <div class="alert alert-danger" role="alert">
                                     <label class="control-label">* {{ error.1 }}</label>
                                 </div>
-                            {% endfor %} {% endif %}                   
+                            {% endfor %} {% endif %}               
                             <div>
                                 {{ add_message_form.reader }}</br>
                                 {{ add_message_form.text }}</br>
