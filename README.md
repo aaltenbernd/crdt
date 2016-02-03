@@ -7,7 +7,7 @@
 	* ID = 0 und PORT = 8000
 	* ID = 1 und PORT = 8001
 	* ID = 2 und PORT = 8002
-* Hosts können mit Angabe der jeweiligen Settings-Datei gestartet. (host_0.py, host_1.py und host_2.py)
+* Hosts können mit Angabe der jeweiligen Settings-Datei gestartet. (host_0, host_1 und host_2)
 
 ###### Host starten:
 
