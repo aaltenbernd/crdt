@@ -2,20 +2,15 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 
-from .models import AddMessage, DeleteMessage, AddFolder, DeleteFolder, createUser
+from .models import AddMessage, DeleteMessage, AddFolder, DeleteFolder
 from .forms import AddMessageForm, AddFolderForm, LoginForm, RegisterForm, ChangeFolderForm
-
-import thread
-import time
-import requests
 
 from django.conf import settings
 
-# localHost
-HOSTNAME = "http://127.0.0.1"
+from .operation import *
 
 def index(request):
-    return redirect('show_messages', None)
+    return redirect('show_messages', 'inbox')
 
 def send_message(request):
     if not request.user.is_authenticated():
@@ -31,40 +26,20 @@ def send_message(request):
             text = request.POST.get('text')
             reader_id = request.POST.get('reader')
             reader = User.objects.get(id=reader_id)
+            reader_uuid = reader.userprofile.uuid
+            author = request.user.username
+            author_uuid = request.user.userprofile.uuid
 
             if reader is None:
                 return redirect('index')
 
-            message = AddMessage.objects.create(text=text, reader=reader.username, host_id=settings.RUNNING_HOST['id'], color=settings.RUNNING_HOST['color'], folder_id=None, author=request.user.username)
-
-            user = request.user
-
-            user.userprofile.increment()
-            user.userprofile.save()
-
-            for host in settings.OTHER_HOSTS:
-                settings.QUEUE[host['id']].put({'operation' : 'increment', 'username' : user.username})
-                settings.QUEUE[host['id']].put(message.to_dict(user.username, 'add'))
+            addMessage(text, author, author_uuid, reader, reader_uuid)
 
             return redirect('index')
 
-    data = {'form': form, 'host_color': settings.RUNNING_HOST['color']}
+    data = {'form': form}
 
     return redirect('index')
-
-def getAllMessages():
-    messages = AddMessage.objects.all()
-    for delete_message in DeleteMessage.objects.all():
-        messages = messages.exclude(uuid=delete_message.uuid)
-
-    return messages
-
-def getAllFolders():
-    folders = AddFolder.objects.all()
-    for delete_folder in DeleteFolder.objects.all():
-        folders = folders.exclude(uuid=delete_folder.uuid)
-
-    return folders
 
 def add_folder(request, active_folder_id):
     if not request.user.is_authenticated():
@@ -76,10 +51,7 @@ def add_folder(request, active_folder_id):
         if form.is_valid():
             title = request.POST.get('title')
 
-            folder = AddFolder.objects.create(title=title, host_id=settings.RUNNING_HOST['id'], color=settings.RUNNING_HOST['color'])
-
-            for host in settings.OTHER_HOSTS:
-                settings.QUEUE[host['id']].put(folder.to_dict(request.user.username))
+            addFolder(title, request.user.userprofile.uuid)
 
             return redirect('show_messages', active_folder_id)
 
@@ -89,28 +61,24 @@ def show_messages(request, active_folder_id):
     if not request.user.is_authenticated():
         return redirect('login')
 
-    if active_folder_id == 'None':
-        active_folder = None
+    if active_folder_id == 'inbox':
+        active_folder = 'inbox'
+    elif active_folder_id == 'outbox':
+        active_folder = 'outbox'
     else:
         active_folder = AddFolder.objects.get(uuid=active_folder_id)
 
     add_folder_form = AddFolderForm()
-    add_message_form = AddMessageForm()
-    change_folder_form = ChangeFolderForm(active_folder_id=active_folder_id)
+    add_message_form = AddMessageForm()    
 
-    # get all messages in current folder
-    messages = getAllMessages()
+    messages = getAllMessages(request.user.userprofile.uuid, active_folder_id=active_folder_id)
 
-    messages = messages.order_by('-date')
-    if active_folder_id == 'None':
-        messages = messages.filter(folder_id=None)
-    else:
-        messages = messages.filter(folder_id=active_folder_id)
+    messages = messages.order_by("-date")
 
     # get all folder
-    folders = getAllFolders()
+    folders = getAllFolders(request.user.userprofile.uuid)
 
-    folders = folders.order_by('title')
+    change_folder_form = ChangeFolderForm(active_folder_id=active_folder_id, folders=folders)
 
     data = {'add_message_form': add_message_form,
             'add_folder_form': add_folder_form, 
@@ -120,7 +88,7 @@ def show_messages(request, active_folder_id):
             'other_hosts': settings.OTHER_HOSTS, 
             'running_host': settings.RUNNING_HOST['id'], 
             'active_folder': active_folder, 
-            'host_color': settings.RUNNING_HOST['color'],
+            'user': request.user,
             }
 
     return render(request, 'messages.html', data)
@@ -131,33 +99,14 @@ def change_folder(request, active_folder_id, message_id):
 
     if request.method == 'POST':
 
-        form = ChangeFolderForm(request.POST, active_folder_id=active_folder_id)
+        folders = getAllFolders(request.user.userprofile.uuid)
+
+        form = ChangeFolderForm(request.POST, active_folder_id=active_folder_id, folders=folders)
 
         if form.is_valid():
             folder_choice = request.POST.get('folder_choice')
 
-            if not folder_choice:
-                folder_choice = None
-   
-            add_message = AddMessage.objects.get(uuid=message_id)
-
-            if add_message is None:
-                return redirect('show_messages', active_folder_id)
-
-            print '[Folder id:] ' + str(add_message.folder_id)
-            print '[Folder choice:] ' + str(folder_choice)
-
-            if str(add_message.folder_id) == str(folder_choice):
-                print '[same folder]'
-                return redirect('show_messages', active_folder_id)
-
-            delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id)
-
-            new_message = AddMessage.objects.create(text=add_message.text, host_id=add_message.host_id, folder_id=folder_choice, color=add_message.color, date=add_message.date)
-
-            for host in settings.OTHER_HOSTS:
-                settings.QUEUE[host['id']].put(delete_message.to_dict(request.user.username, 'delete'))
-                settings.QUEUE[host['id']].put(new_message.to_dict(request.user.username, 'add'))
+            changeFolder(message_id, folder_choice)
 
             return redirect('show_messages', active_folder_id)
 
@@ -193,7 +142,7 @@ def register(request):
             username = request.POST['username']
             password = request.POST['password']
 
-            createUser(username, password)
+            createUser(username, password, False, False)
 
             return redirect('login')
         else:
@@ -210,15 +159,7 @@ def delete(request, active_folder_id, message_id):
     if not request.user.is_authenticated():
         return redirect('login')
 
-    add_message = AddMessage.objects.get(uuid=message_id)
-
-    if add_message is None:
-        return redirect('show_messages', active_folder_id)
-
-    delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id)
-
-    for host in settings.OTHER_HOSTS:
-        settings.QUEUE[host['id']].put(delete_message.to_dict(request.user.username, 'delete'))   
+    deleteMessage(message_id) 
 
     return redirect('show_messages', active_folder_id)
 
@@ -226,25 +167,9 @@ def delete_folder(request, active_folder_id):
     if not request.user.is_authenticated():
         return redirect('login')
 
-    add_folder = AddFolder.objects.get(uuid=active_folder_id)
+    deleteFolder(active_folder_id)
 
-    if add_folder == None:
-        return redirect('show_messages', active_folder_id)
-
-    delete_folder = DeleteFolder.objects.create(uuid=add_folder.uuid, host_id=add_folder.host_id)
-
-    for host in settings.OTHER_HOSTS:
-        settings.QUEUE[host['id']].put(delete_folder.to_dict(request.user.username))
-
-    messages = getAllMessages()
-    messages = messages.filter(folder_id=add_folder.uuid)
-
-    for add_message in messages:
-        delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id)
-        for host in settings.OTHER_HOSTS:
-            settings.QUEUE[host['id']].put(delete_message.to_dict(request.user.username, 'delete'))
-
-    return redirect('show_messages', None)
+    return redirect('show_messages', 'inbox')
 
 def delete_all(request):
     if not request.user.is_authenticated():
@@ -275,16 +200,12 @@ def receive(request):
 
         csrftoken = data.pop('csrfmiddlewaretoken')
         operation = data.pop('operation')
-        username = data.pop('username')
 
-        user = User.objects.get(username=username)
-
-        if operation == 'increment':
-            user.userprofile.increment()
-            user.userprofile.save()
         if operation == 'add':
             add_message = AddMessage(**data)
+            add_message.inbox = eval(data['inbox'])
             add_message.save()
+            print add_message.inbox
         if operation == 'delete':
             delete_message = DeleteMessage(**data)
             delete_message.save()
@@ -294,39 +215,12 @@ def receive(request):
         if operation == 'delete_folder':
             delete_folder = DeleteFolder(**data)
             delete_folder.save()
+        if operation == 'add_user':
+            uuid = data.pop('uuid')
+            user = User.objects.create_user(**data)
+            profile = UserProfile.objects.create(user=user, uuid=uuid)
+            user.userprofile = profile
 
         return redirect('index')
     else:   
         return redirect('index')
-
-def send_thread(host):
-    while True:
-        if settings.QUEUE[host['id']].empty():
-            time.sleep(1)
-        else:
-            data = settings.QUEUE[host['id']].get()
-
-            print "[THREAD " + str(host['id']) + "] " + data['operation'] + " to " + str(host['port'])
-
-            while True:
-                try:
-                    # set up csrftoken, because django needs it
-                    URL = HOSTNAME + ":" + str(host['port']) + "/receive/"
-
-                    client = requests.session()
-                    client.get(URL)
-                    csrftoken = client.cookies['csrftoken']
-
-                    data['csrfmiddlewaretoken'] = csrftoken
-                    cookies = dict(client.cookies)
-
-                    # send post request and delete operations
-                    r = requests.post(URL, data = data, timeout=5, cookies=cookies)
-                    break
-                except requests.exceptions.RequestException:
-                    time.sleep(2)
-                    print "[THREAD " + str(host['id']) + "] Can't reach host " + str(host['port'])
-                    continue
-
-for host in settings.OTHER_HOSTS:
-    thread.start_new_thread(send_thread, (host, ))

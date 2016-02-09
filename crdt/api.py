@@ -1,14 +1,29 @@
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core import serializers
 
 from .models import *
+from .operation import *
 
 from django.conf import settings
 
-@csrf_exempt
+def api_register(request):
+	if request.method == 'POST':
+		username = request.POST['username']
+		password = request.POST['password']
+		password_confirm = request.POST['password_confirm']
+
+		if password != password_confirm:
+			return JsonResponse(dict(error=True, message="Password don't match."))
+
+		createUser(username, password, False, False)
+
+		return JsonResponse(dict(error=False, message="User created."))
+
+	return JsonResponse(dict(error=True, message="No post request."))
+
 def api_login(request):
 	if request.method == 'POST':
 		username = request.POST.get('username')
@@ -32,7 +47,10 @@ def api_login(request):
 	
 	return JsonResponse(dict(error=True, message="No post request."))
 
-@csrf_exempt
+def api_logout(request):
+	logout(request)
+	return JsonResponse(dict(error=False, message="Logged out."))
+
 def api_addMessage(request):
 	if not request.user.is_authenticated():
 		return JsonResponse(dict(error=True, message="User is not authenticated."))
@@ -41,66 +59,100 @@ def api_addMessage(request):
 		text = request.POST.get('text')
 		username = request.POST.get('reader')
 		reader = User.objects.get(username=username)
+		reader_uuid = reader.userprofile.uuid
+		author = request.user.username
+		author_uuid = request.user.userprofile.uuid
 
 		if reader is None:
 			return JsonResponse(dict(error=True, message="User don't exist."))
 
-		print settings.RUNNING_HOST['id']
+		message = addMessage(text, author, author_uuid, reader, reader_uuid)
 
-		message = AddMessage.objects.create(
-			text=text,
-			reader=reader.username,
-			host_id=settings.RUNNING_HOST['id'],
-			color=settings.RUNNING_HOST['color'],
-			folder_id=None,
-			author=request.user.username)
-
-		user = request.user
-
-		user.userprofile.increment()
-		user.userprofile.save()
-
-		for host in settings.OTHER_HOSTS:
-			settings.QUEUE[host['id']].put({'operation' : 'increment', 'username' : user.username})
-			settings.QUEUE[host['id']].put(message.to_dict(user.username, 'add'))
-
-		return JsonResponse(dict(error=False, message="Added message.", uuid=message.uuid))
+		if message is None:
+			return JsonResponse(dict(error=True, message="No message added."))
+		else:
+			return JsonResponse(dict(error=False, message="Added message.", uuid=message.uuid))
 
 	return JsonResponse(dict(error=True, message="No post request."))
 
-@csrf_exempt
 def api_deleteMessage(request, message_id):
 	if not request.user.is_authenticated():
 		return JsonResponse(dict(error=True, message="User is not authenticated."))
 
-	add_message = AddMessage.objects.get(uuid=message_id)
+	delete_message = deleteMessage(message_id)
 
-	if add_message is None:
-		return JsonResponse(dict(error=True, message="Message don't exist."))
+	if delete_message is None:
+		return JsonResponse(dict(error=True, message="No message deleted."))
+	else:
+		return JsonResponse(dict(error=False, message="Deleted message.", uuid=delete_message.uuid))
 
-	delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id)
+def api_addFolder(request):
+	if not request.user.is_authenticated():
+		return JsonResponse(dict(error=True, message="User is not authenticated."))
 
-	for host in settings.OTHER_HOSTS:
-		settings.QUEUE[host['id']].put(delete_message.to_dict(request.user.username, 'delete'))
+	if request.method == "POST":
 
-	return JsonResponse(dict(error=False, message="Deleted message.", uuid=delete_message.uuid))
+		title = request.POST.get('title')
 
-@csrf_exempt
+		folder = addFolder(title, request.user.userprofile.uuid)
+
+		if folder is None:
+			return JsonResponse(dict(error=True, message="No folder added."))
+		else:
+			return JsonResponse(dict(error=False, message="Added folder.", uuid=folder.uuid))
+
+	return JsonResponse(dict(error=True, message="No post request."))
+
+def api_deleteFolder(request, folder_id):
+	if not request.user.is_authenticated():
+		return JsonResponse(dict(error=True, message="User is not authenticated."))
+
+	delete_folder = deleteFolder(folder_id)
+
+	if delete_folder is None:
+		return JsonResponse(dict(error=True, message="No folder deleted."))
+	else:
+		return JsonResponse(dict(error=False, message="Deleted folder.", uuid=delete_folder.uuid))
+
+def api_changeFolder(request, message_id):
+	if not request.user.is_authenticated():
+		return JsonResponse(dict(error=True, message="User is not authenticated."))
+
+	if request.method == "POST":
+		folder_choice = request.POST.get('folder_choice')
+
+		new_message = changeFolder(message_id, folder_choice)
+
+		if new_message is None:
+			return JsonResponse(dict(error=True, message="Folder not changed."))
+		else:
+			return JsonResponse(dict(error=False, message="Changed folder.", uuid=new_message.uuid))
+
+	return JsonResponse(dict(error=True, message="No post request."))
+
+
 def api_getCurrentState(request):
 	if not request.user.is_authenticated():
 		return JsonResponse(dict(error=True, message="User is not authenticated."))
 
-	messages = AddMessage.objects.all()
-	for delete_message in DeleteMessage.objects.all():
-		messages = messages.exclude(uuid=delete_message.uuid)
+	messages = getAllMessages(request.user.userprofile.uuid, 'all_inbox')
 
+	folders = getAllFolders(request.user.userprofile.uuid)
+
+	folder_dict = {}
+	for folder in folders:
+		folder_dict[str(folder.uuid)] = len(messages.filter(folder_id=str(folder.uuid)))
+	
 	return JsonResponse(dict(
 		error=False, 
-		add_messages_count=AddMessage.objects.all().count(), 
-		delete_messages_count=DeleteMessage.objects.all().count(), 
-		messages_count=messages.count()))
+		add_messages_count=len(AddMessage.objects.all()), 
+		delete_messages_count=len(DeleteMessage.objects.all()), 
+		messages_count=len(messages),
+		add_folder_count=len(AddFolder.objects.all()),
+		delete_folder_count=len(DeleteFolder.objects.all()),
+		folders_count=len(folders),
+		folder_dict=folder_dict))
 
-@csrf_exempt
 def api_getQueue(request):
 	if not request.user.is_authenticated():
 		return JsonResponse(dict(error=True, message="User is not authenticated."))

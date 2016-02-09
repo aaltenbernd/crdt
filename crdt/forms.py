@@ -9,13 +9,10 @@ from .models import AddMessage, AddFolder, DeleteFolder
 class ChangeFolderForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		self.active_folder_id = kwargs.pop('active_folder_id')
-		self.folders = AddFolder.objects.all()
-		self.del_folders = DeleteFolder.objects.all()
-		for del_folder in self.del_folders:
-			self.folders = self.folders.exclude(uuid=del_folder.uuid)
+		self.folders = kwargs.pop('folders')
 		super(ChangeFolderForm, self).__init__(*args, **kwargs)
 
-		if self.active_folder_id == 'None':
+		if self.active_folder_id == 'inbox':
 			self.fields['folder_choice'].empty_label = None
 			self.fields['folder_choice'].queryset = self.folders
 		else:
