@@ -106,16 +106,14 @@ def getAllFolders(user_uuid):
 
     return folders
 
-def createUser(username, password, is_staff, is_superuser):
-	user = User.objects.create_user(username=username, password=password, is_staff=is_staff, is_superuser=is_superuser)
+def createUser(username, password):
+	user = User.objects.create_user(username=username, password=password)
 	profile = UserProfile.objects.create(user=user)
 	user.userprofile = profile
 	user_dict = {}
 	user_dict['uuid'] = user.userprofile.uuid
 	user_dict['username'] = username
 	user_dict['password'] = password
-	user_dict['is_staff'] = is_staff
-	user_dict['is_superuser'] = is_superuser
 	user_dict['operation'] = 'add_user'
 
 	for host in settings.OTHER_HOSTS:

@@ -8,6 +8,7 @@ from .models import *
 from .operation import *
 
 from django.conf import settings
+from django.core import serializers
 
 def api_register(request):
 	if request.method == 'POST':
@@ -18,7 +19,7 @@ def api_register(request):
 		if password != password_confirm:
 			return JsonResponse(dict(error=True, message="Password don't match."))
 
-		createUser(username, password, False, False)
+		createUser(username, password)
 
 		return JsonResponse(dict(error=False, message="User created."))
 
@@ -152,6 +153,11 @@ def api_getCurrentState(request):
 		delete_folder_count=len(DeleteFolder.objects.all()),
 		folders_count=len(folders),
 		folder_dict=folder_dict))
+
+def api_getAddmessages(request):
+	data = serializers.serialize('json', AddMessage.objects.all())
+
+	return JsonResponse(data, safe=False)
 
 def api_getQueue(request):
 	if not request.user.is_authenticated():

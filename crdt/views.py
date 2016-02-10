@@ -142,7 +142,7 @@ def register(request):
             username = request.POST['username']
             password = request.POST['password']
 
-            createUser(username, password, False, False)
+            createUser(username, password)
 
             return redirect('login')
         else:
@@ -205,7 +205,6 @@ def receive(request):
             add_message = AddMessage(**data)
             add_message.inbox = eval(data['inbox'])
             add_message.save()
-            print add_message.inbox
         if operation == 'delete':
             delete_message = DeleteMessage(**data)
             delete_message.save()

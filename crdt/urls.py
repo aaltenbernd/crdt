@@ -30,4 +30,5 @@ urlpatterns = [
     url(r'^api_getCurrentState$', api.api_getCurrentState),
     url(r'^api_getQueue$', api.api_getQueue),
     url(r'^api_changeFolder/(?P<message_id>[-\w]+)/$', api.api_changeFolder),
+    url(r'^api_getAddmessages$', api.api_getAddmessages),
 ]
