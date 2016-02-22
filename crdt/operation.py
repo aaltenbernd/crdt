@@ -1,121 +1,133 @@
 from .models import *
 
 from django.conf import settings
+import uuid
+import time
+import sys
 
-def addMessage(text, author, author_uuid, reader, reader_uuid):
+def addFolder(user_uuid, title):
+	op_start = time.time()
+	folder = dict(uuid=str(uuid.uuid4()), operation='add_folder', title=title, user_id=str(user_uuid))
 
-	inbox_message = AddMessage.objects.create(text=text, author=author, author_uuid=author_uuid, reader=reader, reader_uuid=reader_uuid, folder_id=None, host_id=settings.RUNNING_HOST['id'], inbox=True)
-	outbox_message = AddMessage.objects.create(text=text, author=author, author_uuid=author_uuid, reader=reader, reader_uuid=reader_uuid, folder_id=None, host_id=settings.RUNNING_HOST['id'], inbox=False)
+	settings.SET_MANAGER.add(folder, True)
 
-	for host in settings.OTHER_HOSTS:
-		settings.QUEUE[host['id']].put(inbox_message.to_dict())
-		settings.QUEUE[host['id']].put(outbox_message.to_dict())
+	return (folder['uuid'], (time.time() - op_start))
 
-	return inbox_message
+def addMessage(user_uuid, text, author_id, reader_id):
+	op_start = time.time()
+	date = time.strftime("%b %d %Y %H:%M:%S")
+	inbox_message = dict(uuid=str(uuid.uuid4()), date=date, operation='add', text=text, author_id=str(author_id), reader_id=str(reader_id), folder=None, host=settings.RUNNING_HOST['id'])
+	outbox_message = dict(uuid=str(uuid.uuid4()), date=date, operation='add_outbox', text=text, author_id=str(author_id), reader_id=str(reader_id), host=settings.RUNNING_HOST['id'])
 
-def deleteMessage(uuid):
-	add_message = AddMessage.objects.get(uuid=uuid)
+	settings.SET_MANAGER.add(inbox_message, True)
+	settings.SET_MANAGER.add(outbox_message, True)
 
-	if add_message is None:
+	return (inbox_message['uuid'], (time.time() - op_start))
+
+def deleteOutboxMessage(user_uuid, uuid):
+	#for outbox_message in settings.SET_MANAGER.getOutboxMessages():
+	#	if str(add_message.uuid) == uuid:
+	#		break
+	#else:
+	#	return None
+
+	op_start = time.time()
+
+	delete_message = dict(operation='delete', uuid=str(uuid))
+	settings.SET_MANAGER.add(delete_message, True)
+
+	return (delete_message['uuid'], (time.time() - op_start))
+
+def deleteMessage(user_uuid, uuid):
+	#for message in settings.SET_MANAGER.getMessages():
+	#	if str(message.uuid) == uuid:
+	#		break
+	#else:
+	#	return None
+	op_start = time.time()
+
+	delete_message = dict(operation='delete', uuid=str(uuid))
+	settings.SET_MANAGER.add(delete_message, True)
+
+	return (delete_message['uuid'], (time.time() - op_start))
+
+
+
+def deleteFolder(user_id, uuid):
+	#for add_folder in settings.SET_MANAGER.getFolders():
+	#	if str(add_folder.uuid) == uuid:
+	#		break
+	#else:
+	#	return None
+
+	op_start = time.time()
+	delete_folder = dict(operation='delete_folder', uuid=str(uuid))
+	settings.SET_MANAGER.add(delete_folder, True)
+
+	# Muessen wirklich alle Nachrichten geloescht werden?
+
+	#messages = getAllMessages(user_id, add_folder.uuid)
+
+	#for add_message in messages:
+	#	delete_message = dict(operation='delete', uuid=add_message.uuid)
+	#	settings.SET_MANAGER.add(delete_message, True)
+
+	return (delete_folder['uuid'], (time.time() - op_start))
+
+def changeFolder(user_uuid, message_id, folder_choice, by_uuid):
+	op_start = time.time()
+
+	for add_message in settings.SET_MANAGER.getMessages():
+		if str(add_message.uuid) == message_id:
+			break
+	else:
 		return None
 
-	delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id, author=add_message.author, author_uuid=add_message.author_uuid, reader=add_message.reader, reader_uuid=add_message.reader_uuid)
+	if folder_choice != 'Inbox':
+		if not by_uuid:
+			for folder in settings.SET_MANAGER.getFolders():
+				if folder.title == folder_choice:
+					break
+			else:
+				return None
+			folder_choice = folder.uuid
 
-	for host in settings.OTHER_HOSTS:
-		settings.QUEUE[host['id']].put(delete_message.to_dict())
-
-	return delete_message
-
-def addFolder(title, user_uuid):
-	folder = AddFolder.objects.create(title=title, host_id=settings.RUNNING_HOST['id'], user_uuid=user_uuid)
-
-	for host in settings.OTHER_HOSTS:
-		settings.QUEUE[host['id']].put(folder.to_dict())
-
-	return folder
-
-def deleteFolder(folder_id):
-	add_folder = AddFolder.objects.get(uuid=folder_id)
-
-	if add_folder == None:
-		return None
-
-	delete_folder = DeleteFolder.objects.create(uuid=add_folder.uuid, host_id=add_folder.host_id, user_uuid=add_folder.user_uuid)
-
-	for host in settings.OTHER_HOSTS:
-		settings.QUEUE[host['id']].put(delete_folder.to_dict())
-
-	messages = AddMessage.objects.all()
-	for delete_message in DeleteMessage.objects.all():
-		messages = messages.exclude(uuid=delete_message.uuid)
-
-	messages = messages.filter(folder_id=add_folder.uuid)
-	for add_message in messages:
-		delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id, author=add_message.author, author_uuid=add_message.author_uuid, reader=add_message.reader, reader_uuid=add_message.reader_uuid)
-		for host in settings.OTHER_HOSTS:
-			settings.QUEUE[host['id']].put(delete_message.to_dict())
-
-	return delete_folder
-
-def changeFolder(message_id, folder_choice):
-	if not folder_choice:
+		folder_choice = str(folder_choice)
+	else:
 		folder_choice = None
-
-	add_message = AddMessage.objects.get(uuid=message_id)
-
-	if add_message is None:
-		return None
-
-	if str(add_message.folder_id) == str(folder_choice):
-		return None
 	
-	delete_message = DeleteMessage.objects.create(uuid=add_message.uuid, host_id=add_message.host_id, author=add_message.author, author_uuid=add_message.author_uuid, reader=add_message.reader, reader_uuid=add_message.reader_uuid)
+	delete_message = dict(operation='delete', uuid=str(message_id))
+	settings.SET_MANAGER.add(delete_message, True)
 
-	new_message = AddMessage.objects.create(text=add_message.text, host_id=add_message.host_id, folder_id=folder_choice, date=add_message.date, author=add_message.author, author_uuid=add_message.author_uuid, reader=add_message.reader, reader_uuid=add_message.reader_uuid, inbox=True)
+	new_message = dict(uuid=str(uuid.uuid4()), operation='add', text=add_message.text, host=add_message.host, folder=folder_choice, date=add_message.date, author_id=str(add_message.author_id), reader_id=str(add_message.reader_id))
+	settings.SET_MANAGER.add(new_message, True)
 
-	for host in settings.OTHER_HOSTS:
-		settings.QUEUE[host['id']].put(delete_message.to_dict())
-		settings.QUEUE[host['id']].put(new_message.to_dict())
+	return (new_message['uuid'], (time.time() - op_start))
 
-	return new_message
+def getAllOutboxMessages(user_id):
+	outbox = settings.SET_MANAGER.getOutboxMessages()
+	return [msg for msg in outbox if msg.author_id == user_id]
 
-def getAllMessages(user_uuid, active_folder_id):
-    if active_folder_id == 'inbox':
-        messages = AddMessage.objects.filter(reader_uuid=user_uuid).filter(inbox=True).filter(folder_id=None)
-        for delete_message in DeleteMessage.objects.filter(reader_uuid=user_uuid):
-            messages = messages.exclude(uuid=delete_message.uuid)
-    elif active_folder_id == 'all_inbox':
-    	messages = AddMessage.objects.filter(reader_uuid=user_uuid).filter(inbox=True)
-        for delete_message in DeleteMessage.objects.filter(reader_uuid=user_uuid):
-            messages = messages.exclude(uuid=delete_message.uuid)
-    elif active_folder_id == 'outbox':
-        messages = AddMessage.objects.filter(author_uuid=user_uuid).filter(inbox=False)
-        for delete_message in DeleteMessage.objects.filter(author_uuid=user_uuid):
-            messages = messages.exclude(uuid=delete_message.uuid)
-    else:
-        messages = AddMessage.objects.filter(reader_uuid=user_uuid).filter(inbox=True).filter(folder_id=active_folder_id)
-        for delete_message in DeleteMessage.objects.filter(reader_uuid=user_uuid):
-            messages = messages.exclude(uuid=delete_message.uuid)
+def getAllMessages(user_id):
+	messages = settings.SET_MANAGER.getMessages()
+	return [msg for msg in messages if msg.reader_id == user_id]
 
-    return messages
+def getAllMessagesInFolder(user_id, folder):
+	messages = settings.SET_MANAGER.getMessages()
+	return [msg for msg in messages if msg.reader_id == user_id and msg.folder == folder]
 
-def getAllFolders(user_uuid):
-    folders = AddFolder.objects.filter(user_uuid=user_uuid)
-    for delete_folder in DeleteFolder.objects.filter(user_uuid=user_uuid):
-        folders = folders.exclude(uuid=delete_folder.uuid)
-
-    return folders
+def getAllFolders(user_id):
+	folders = settings.SET_MANAGER.getFolders()
+	return [f for f in folders if f.user_id == user_id]
 
 def createUser(username, password):
-	user = User.objects.create_user(username=username, password=password)
-	profile = UserProfile.objects.create(user=user)
+	user = User.objects.filter(username=username)
+	if user:
+		return user.first().userprofile.uuid 
+	user = User.objects.create_user(username=username, password=password, is_staff=True, is_superuser=True)
+	profile = UserProfile.objects.create(uuid=uuid.uuid4(), user=user)
 	user.userprofile = profile
-	user_dict = {}
-	user_dict['uuid'] = user.userprofile.uuid
-	user_dict['username'] = username
-	user_dict['password'] = password
-	user_dict['operation'] = 'add_user'
 
 	for host in settings.OTHER_HOSTS:
-		settings.QUEUE[host['id']].put(user_dict)
- 	return
+		settings.QUEUE[host['id']].put(dict(uuid=str(user.userprofile.uuid), username=username, password=password, operation='add_user'))
+ 	return user.userprofile.uuid

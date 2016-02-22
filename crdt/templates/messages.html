@@ -47,7 +47,7 @@
     <div class="container">
 
         <div class="row">
-            <div class="col-sm-12">
+            <div class="col-sm-2">
                 
                 {% if running_host == 0 %}
                 <h5 style="color: rgba(150, 0, 0, 0.5)">crdt mail service</h5>
@@ -58,7 +58,11 @@
                 {% else %}
                 <h5>crdt mail service</h5>
                 {% endif %}
-                <h5>{{ user.username }} : {{ user.userprofile.uuid }}</h5>
+                <h5>{{ user.username }}<!-- : {{ user.userprofile.uuid }}--></h5>
+            </div>
+            <div class="col-sm-10">
+                <h5>Current : {{ len_messages }}</h5>
+                <h5>Folders : {{ len_folders }}</h5>
             </div>
         </div>
 
@@ -109,20 +113,20 @@
 
                 <h5>folders:</h5>
                 <ul class="nav nav-pills nav-stacked">
-                    {% if active_folder == 'inbox' %}
+                    {% if active_folder_id == 'inbox' %}
                         <li class="active"><a href="{% url 'show_messages' 'inbox' %}">Inbox</a></li>
                     {% else %}
                         <li><a href="{% url 'show_messages' 'inbox' %}">Inbox</a></li>
                     {% endif %}
                     {% if folders %} {% for folder in folders %}
-                        {% if folder.uuid == active_folder.uuid %}
+                        {% if folder.uuid == active_folder_id %}
                             <li class="active" ><a href="{% url 'show_messages' folder.uuid %}">{{ folder.title }}</a></li>
                         {% else %}
                             <li><a href="{% url 'show_messages' folder.uuid %}">{{ folder.title }}</a></li>
                         {% endif %}
                     {% endfor %} {% endif %}
                     <hr>
-                    {% if active_folder == 'outbox' %}
+                    {% if active_folder_id == 'outbox' %}
                         <li class="active"><a href="{% url 'show_messages' 'outbox' %}">Outbox</a></li>
                     {% else %}
                         <li><a href="{% url 'show_messages' 'outbox' %}">Outbox</a></li>
@@ -133,12 +137,12 @@
                 <h5>add folder:</h5>
 
                 <div id="send" class="tab-pane fade in active">
-                    {% if active_folder == 'inbox'%}
+                    {% if active_folder_id == 'inbox'%}
                     <form action="{% url 'add_folder' 'inbox' %}" method="post">
-                    {% elif active_folder == 'outbox' %}
+                    {% elif active_folder_id == 'outbox' %}
                     <form action="{% url 'add_folder' 'outbox' %}" method="post">
                     {% else %}
-                    <form action="{% url 'add_folder' active_folder.uuid %}" method="post">
+                    <form action="{% url 'add_folder' active_folder_id %}" method="post">
                     {% endif %}
                         {% csrf_token %} 
                         {% if add_folder_form.errors %} {% for error in add_folder_form.errors.items %}
@@ -155,19 +159,19 @@
                     </form>
                 </div>
 
-                {% if active_folder != 'inbox' and active_folder != 'outbox' %}
+                {% if active_folder_id != 'inbox' and active_folder_id != 'outbox' %}
                 <h5>delete selected folder:</h5>
 
                 <div>
-                    <form action="{% url 'delete_folder' active_folder.uuid %}">
+                    <form action="{% url 'delete_folder' active_folder_id %}">
                         <button class="btn btn-default btn-block btn-sm" type="submit" value="Submit">
                             Delete Folder
                         </button> 
                     </form>
                 </div>
                 {% endif %}
+            </br>
             </div>
-
 
             <div class="col-sm-9">
                 
@@ -178,32 +182,36 @@
                 <div class="row">
                     <div class="col-sm-8">
                         <div class="panel panel-default">
-                            {% if message.host_id == 0 %}
+                            {% if message.host == 0 %}
                             <div class="panel-heading" style="background-color: rgba(150, 0, 0, 0.5)">{{ message.uuid }}</div>
-                            {% elif message.host_id == 1 %}
+                            {% elif message.host == 1 %}
                             <div class="panel-heading" style="background-color: rgba(0, 150, 0, 0.5)">{{ message.uuid }}</div>
-                            {% elif message.host_id == 2 %}
+                            {% elif message.host == 2 %}
                             <div class="panel-heading" style="background-color: rgba(0, 0, 150, 0.5)">{{ message.uuid }}</div>
                             {% else %}
                             <div class="panel-heading">{{ message.uuid }}</div>
                             {% endif %}
                             <div class="panel-body">
-                                <p>from : {{ message.author }}</p>
-                                <p>to : {{ message.reader }}</p>
+                                <p>from : {{ message.author_id }}</p>
+                                <p>to : {{ message.reader_id }}</p>
                                 <p>date : {{ message.date }}</p>
                                 <p>text : {{ message.text }}</p>
                             </div>
-                            {% if active_folder != 'outbox' and active_folder != 'inbox' %}
-                            <div class="panel-footer">{{ message.folder_id }}</div>
+                            {% if active_folder_id == 'inbox' %}
+                            <div class="panel-footer">Inbox</div>
+                            {% elif active_folder_id == 'outbox' %}
+                            <div class="panel-footer">Outbox</div>
+                            {% else %}
+                            <div class="panel-footer">{{ message.folder }}</div>
                             {% endif %}
                         </div>
                     </div>                    
                     <div class="col-sm-4">
-                        {% if folders and active_folder != 'outbox' %}
-                        {% if active_folder == 'inbox' %}
+                        {% if folders and active_folder_id != 'outbox' %}
+                        {% if active_folder_id == 'inbox' %}
                         <form action="{% url 'change_folder' 'inbox' message.uuid %}" method="post">
                         {% else %}
-                        <form action="{% url 'change_folder' active_folder.uuid message.uuid %}" method="post">
+                        <form action="{% url 'change_folder' active_folder_id message.uuid %}" method="post">
                         {% endif %}
                         {% csrf_token %}
                             {{ change_folder_form.folder_choice }}</br>
@@ -212,12 +220,12 @@
                             </button></br>
                         </form>
                         {% endif %}
-                        {% if active_folder == 'inbox' %}
+                        {% if active_folder_id == 'inbox' %}
                         <form action="{% url 'delete' 'inbox' message.uuid %}">
-                        {% elif active_folder == 'outbox' %}
+                        {% elif active_folder_id == 'outbox' %}
                         <form action="{% url 'delete' 'outbox' message.uuid %}">
                         {% else %}
-                        <form action="{% url 'delete' active_folder.uuid message.uuid %}">
+                        <form action="{% url 'delete' active_folder_id message.uuid %}">
                         {% endif %}
                             <button class="btn btn-default btn-block btn-sm" type="submit" value="Submit">
                                 Delete

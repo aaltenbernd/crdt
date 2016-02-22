@@ -2,12 +2,15 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 
-from .models import AddMessage, DeleteMessage, AddFolder, DeleteFolder
 from .forms import AddMessageForm, AddFolderForm, LoginForm, RegisterForm, ChangeFolderForm
 
 from django.conf import settings
 
+from django.views.decorators.csrf import csrf_exempt
+
 from .operation import *
+import uuid
+import json
 
 def index(request):
     return redirect('show_messages', 'inbox')
@@ -24,16 +27,12 @@ def send_message(request):
 
         if form.is_valid():
             text = request.POST.get('text')
-            reader_id = request.POST.get('reader')
-            reader = User.objects.get(id=reader_id)
-            reader_uuid = reader.userprofile.uuid
-            author = request.user.username
+            reader = request.POST.get('reader')
+            reader_user = User.objects.get(username=reader)
+            reader_uuid = reader_user.userprofile.uuid
             author_uuid = request.user.userprofile.uuid
 
-            if reader is None:
-                return redirect('index')
-
-            addMessage(text, author, author_uuid, reader, reader_uuid)
+            addMessage(request.user.userprofile.uuid, text, author_uuid, reader_uuid)
 
             return redirect('index')
 
@@ -51,7 +50,7 @@ def add_folder(request, active_folder_id):
         if form.is_valid():
             title = request.POST.get('title')
 
-            addFolder(title, request.user.userprofile.uuid)
+            addFolder(request.user.userprofile.uuid, title)
 
             return redirect('show_messages', active_folder_id)
 
@@ -61,34 +60,38 @@ def show_messages(request, active_folder_id):
     if not request.user.is_authenticated():
         return redirect('login')
 
-    if active_folder_id == 'inbox':
-        active_folder = 'inbox'
-    elif active_folder_id == 'outbox':
-        active_folder = 'outbox'
-    else:
-        active_folder = AddFolder.objects.get(uuid=active_folder_id)
+    if active_folder_id != 'inbox' and active_folder_id != 'outbox':
+        active_folder_id = uuid.UUID(active_folder_id)
 
-    add_folder_form = AddFolderForm()
-    add_message_form = AddMessageForm()    
-
-    messages = getAllMessages(request.user.userprofile.uuid, active_folder_id=active_folder_id)
-
-    messages = messages.order_by("-date")
-
-    # get all folder
     folders = getAllFolders(request.user.userprofile.uuid)
 
-    change_folder_form = ChangeFolderForm(active_folder_id=active_folder_id, folders=folders)
+    if active_folder_id == 'inbox':
+        messages = getAllMessagesInFolder(request.user.userprofile.uuid, None)
+    elif active_folder_id == 'outbox':
+        messages = getAllOutboxMessages(request.user.userprofile.uuid)
+    else:
+        messages = getAllMessagesInFolder(request.user.userprofile.uuid, active_folder_id)
+
+    folders = sorted(folders, key=lambda folder: folder.title)
+    messages = sorted(messages, key=lambda message: message.date, reverse=True)
+
+    add_folder_form = AddFolderForm()
+    add_message_form = AddMessageForm()
+
+    change_folder_form = ChangeFolderForm()
 
     data = {'add_message_form': add_message_form,
             'add_folder_form': add_folder_form, 
             'change_folder_form': change_folder_form,
-            'messages': messages, 
-            'folders': folders, 
+            'messages': messages[0:10], 
+            'folders': folders[0:10], 
             'other_hosts': settings.OTHER_HOSTS, 
             'running_host': settings.RUNNING_HOST['id'], 
-            'active_folder': active_folder, 
+            'active_folder_id': active_folder_id,
             'user': request.user,
+            'users': User.objects.all(),
+            'len_messages': len(messages),
+            'len_folders': len(folders)
             }
 
     return render(request, 'messages.html', data)
@@ -101,12 +104,12 @@ def change_folder(request, active_folder_id, message_id):
 
         folders = getAllFolders(request.user.userprofile.uuid)
 
-        form = ChangeFolderForm(request.POST, active_folder_id=active_folder_id, folders=folders)
+        form = ChangeFolderForm(request.POST)
 
         if form.is_valid():
             folder_choice = request.POST.get('folder_choice')
 
-            changeFolder(message_id, folder_choice)
+            changeFolder(request.user.userprofile.uuid, message_id, folder_choice, False)
 
             return redirect('show_messages', active_folder_id)
 
@@ -159,7 +162,10 @@ def delete(request, active_folder_id, message_id):
     if not request.user.is_authenticated():
         return redirect('login')
 
-    deleteMessage(message_id) 
+    if active_folder_id == 'outbox':
+        deleteOutboxMessage(request.user.userprofile.uuid, message_id)
+    else:
+        deleteMessage(request.user.userprofile.uuid, message_id) 
 
     return redirect('show_messages', active_folder_id)
 
@@ -167,13 +173,16 @@ def delete_folder(request, active_folder_id):
     if not request.user.is_authenticated():
         return redirect('login')
 
-    deleteFolder(active_folder_id)
+    deleteFolder(request.user.userprofile.uuid, active_folder_id)
 
     return redirect('show_messages', 'inbox')
 
 def delete_all(request):
     if not request.user.is_authenticated():
         return redirect('login')
+
+    for message in OutboxMessage.objects.all():
+        message.delete()
 
     for message in AddMessage.objects.all():
         message.delete()
@@ -187,38 +196,25 @@ def delete_all(request):
     for folder in DeleteFolder.objects.all():
         folder.delete()
 
-    request.user.userprofile.counter = 0
-    request.user.userprofile.save()
-
     return redirect('index')
 
 def receive(request):
     if request.method == 'POST':
-        data = request.POST.dict()
+        data_dict = request.POST.dict()
 
-        print "[RECEIVED] " + data['operation']
+        
 
-        csrftoken = data.pop('csrfmiddlewaretoken')
-        operation = data.pop('operation')
+        #csrftoken = data_dict.pop('csrfmiddlewaretoken')
 
-        if operation == 'add':
-            add_message = AddMessage(**data)
-            add_message.inbox = eval(data['inbox'])
-            add_message.save()
-        if operation == 'delete':
-            delete_message = DeleteMessage(**data)
-            delete_message.save()
-        if operation == 'add_folder':
-            add_folder = AddFolder(**data)
-            add_folder.save()
-        if operation == 'delete_folder':
-            delete_folder = DeleteFolder(**data)
-            delete_folder.save()
-        if operation == 'add_user':
-            uuid = data.pop('uuid')
-            user = User.objects.create_user(**data)
-            profile = UserProfile.objects.create(user=user, uuid=uuid)
-            user.userprofile = profile
+        data_list = json.loads(data_dict['list'])
+        for data in data_list:
+            print "[RECEIVED] " + data['operation']
+            if data['operation'] == 'add_user':
+                user = User.objects.create_user(username=data['username'], password=data['password'])
+                profile = UserProfile.objects.create(user=user, uuid=data['uuid'])
+                user.userprofile = profile
+            else:
+                settings.SET_MANAGER.add(data, False)  
 
         return redirect('index')
     else:   

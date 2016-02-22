@@ -4,24 +4,10 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate
 
-from .models import AddMessage, AddFolder, DeleteFolder
-
 class ChangeFolderForm(forms.Form):
-	def __init__(self, *args, **kwargs):
-		self.active_folder_id = kwargs.pop('active_folder_id')
-		self.folders = kwargs.pop('folders')
-		super(ChangeFolderForm, self).__init__(*args, **kwargs)
-
-		if self.active_folder_id == 'inbox':
-			self.fields['folder_choice'].empty_label = None
-			self.fields['folder_choice'].queryset = self.folders
-		else:
-			self.fields['folder_choice'].empty_label = "Inbox"
-			self.fields['folder_choice'].queryset = self.folders.exclude(uuid=self.active_folder_id)
-		
-
-	folder_choice = forms.ModelChoiceField(queryset = AddFolder.objects.none(), required=False, empty_label=None, label='Folder', widget = forms.Select(attrs={'class': 'form-control input-sm'}))
-
+	folder_choice = forms.CharField(required=False, widget=forms.Textarea(
+        attrs={'class': 'form-control text-input input-sm', 'placeholder': 'Foldertitle', 'rows': '1', 'style':'resize:none;'}))
+	
 	def clean(self):
 		folder_choice = self.cleaned_data['folder_choice']
 
@@ -50,7 +36,9 @@ class AddMessageForm(forms.Form):
 	text = forms.CharField(required=False, widget=forms.Textarea(
         attrs={'class': 'form-control text-input input-sm', 'placeholder': 'Message', 'rows': '3', 'style':'resize:none;'}))
 
-	reader = forms.ModelChoiceField(queryset = User.objects.all().order_by('username'), required = False, empty_label = None, label='Reader', widget = forms.Select(attrs={'class': "form-control input-sm"}))
+	reader = forms.CharField(required=False, widget=forms.Textarea(
+        attrs={'class': 'form-control text-input input-sm', 'placeholder': 'User', 'rows': '1', 'style':'resize:none;'}))
+	
 	def clean(self):
 		text = self.cleaned_data['text']
 		reader = self.cleaned_data['reader']
@@ -60,6 +48,11 @@ class AddMessageForm(forms.Form):
 
 		if len(text) > 320:
 			self._errors['text_length'] = "The message exceeds maximum length of 320 characters!"
+
+		try:
+			User.objects.get(username=reader)
+		except ObjectDoesNotExist:
+			self._errors['user_not_exist'] = "The user don't exist."
 
 		return text, reader
 

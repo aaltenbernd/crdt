@@ -27,8 +27,11 @@ urlpatterns = [
     url(r'^api_addFolder', api.api_addFolder),
     url(r'^api_deleteMessage/(?P<message_id>[-\w]+)/$', api.api_deleteMessage),
     url(r'^api_deleteFolder/(?P<folder_id>[-\w]+)/$', api.api_deleteFolder),
-    url(r'^api_getCurrentState$', api.api_getCurrentState),
     url(r'^api_getQueue$', api.api_getQueue),
     url(r'^api_changeFolder/(?P<message_id>[-\w]+)/$', api.api_changeFolder),
-    url(r'^api_getAddmessages$', api.api_getAddmessages),
+    url(r'^api_getMessages$', api.api_getMessages),
+    url(r'^api_getFolders$', api.api_getFolders),
+    url(r'^api_getState$', api.api_getState),
+    url(r'^api_getSetManagerQueue$', api.api_getSetManagerQueue),
+    url(r'^api_getSendTime$', api.api_getSendTime),
 ]
