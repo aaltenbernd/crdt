@@ -1,6 +1,5 @@
 import requests
 import time
-import ast
 import json
 import random
 import sys
@@ -11,7 +10,7 @@ PORT = ["8000", "8001", "8002"]
 def url(host, port, operation):
 	return host + ":" + port + "/" + operation
 
-class Test():
+class Client():
 	def __init__(self, port):
 		self.port = port
 		self.username = None
@@ -52,54 +51,50 @@ class Test():
 		self.post_data = dict(sessionid=self.sessionid, text=text, reader=self.username, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
-	def deleteMessage(self, uuid):
+	def deleteMessage(self, message_id):
 		self.url = url(HOST, self.port, "api_deleteMessage")
-		self.url = self.url + "/" + str(uuid) + "/"
-		self.response = self.client.get(self.url)
-
-	def getCurrentState(self):
-		self.url = url(HOST, self.port, "api_getCurrentState")
-		self.response = self.client.get(self.url)
-
-	def getQueue(self):
-		self.url = url(HOST, self.port, "api_getQueue")
-		self.response = self.client.get(self.url)
-
-	def getSetManagerQueue(self):
-		self.url = url(HOST, self.port, "api_getSetManagerQueue")
-		self.response = self.client.get(self.url)
+		self.post_data = dict(sessionid=self.sessionid, message_id=message_id, csrfmiddlewaretoken=self.csrftoken)
+		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
 	def addFolder(self, title):
 		self.url = url(HOST, self.port, "api_addFolder")
 		self.post_data = dict(sessionid=self.sessionid, title=title, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
-	def deleteFolder(self, uuid):
+	def deleteFolder(self, folder_id):
 		self.url = url(HOST, self.port, "api_deleteFolder")
-		self.url = self.url + "/" + str(uuid) + "/"
-		self.response = self.client.get(self.url)
-
-	def changeFolder(self, folder_uuid, message_uuid):
-		self.url = url(HOST, self.port, "api_changeFolder")
-		self.url = self.url + "/" + str(message_uuid) + "/"
-		self.post_data = dict(sessionid=self.sessionid, folder_choice=folder_uuid, csrfmiddlewaretoken=self.csrftoken)
+		self.post_data = dict(sessionid=self.sessionid, folder_id=folder_id, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
-	def waitForHost(self):
-		self.getQueue()
-		return json.loads(self.response.content)
+	def changeFolder(self, folder_choice, old_folder, message_id):
+		self.url = url(HOST, self.port, "api_changeFolder")
+		self.post_data = dict(sessionid=self.sessionid, message_id=message_id, folder_choice=folder_choice, old_folder=old_folder, csrfmiddlewaretoken=self.csrftoken)
+		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
-	def waitForPersist(self):
-		self.getSetManagerQueue()
-		return json.loads(self.response.content)
+	def mark_readed(self, message_id):
+		self.url = url(HOST, self.port, "api_mark_readed")
+		self.post_data = dict(sessionid=self.sessionid, message_id=message_id, csrfmiddlewaretoken=self.csrftoken)
+		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
+	
+	def mark_unreaded(self, message_id):
+		self.url = url(HOST, self.port, "api_mark_unreaded")
+		self.post_data = dict(sessionid=self.sessionid, message_id=message_id, csrfmiddlewaretoken=self.csrftoken)
+		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
-	def getState(self):
-		self.url = url(HOST, self.port, "api_getState")
+	def getWait(self):
+		self.url = url(HOST, self.port, "api_getWait")
+		self.response = self.client.get(self.url)
+		if self.response.status_code == 200:
+			return False
+		return True
+
+	def getOutbox(self):
+		self.url = url(HOST, self.port, "api_getOutbox")
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
-	def getMessages(self):
-		self.url = url(HOST, self.port, "api_getMessages")
+	def getInbox(self):
+		self.url = url(HOST, self.port, "api_getInbox")
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
@@ -108,14 +103,40 @@ class Test():
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
-	def getSendTime(self):
-		self.url = url(HOST, self.port, "api_getSendTime")
+	def getInFolder(self, folder_id):
+		self.url = url(HOST, self.port, "api_getInFolder")
+		self.post_data = dict(sessionid=self.sessionid, folder_id=folder_id, csrfmiddlewaretoken=self.csrftoken)
+		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
+		return json.loads(self.response.content)
+
+	def getAllMessages(self):
+		self.url = url(HOST, self.port, "api_getAllMessages")
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
+	def getReadedMessages(self):
+		self.url = url(HOST, self.port, "api_getReadedMessages")
+		self.response = self.client.get(self.url)
+		return json.loads(self.response.content)
+
+	def getUnreadedMessages(self):
+		self.url = url(HOST, self.port, "api_getUnreadedMessages")
+		self.response = self.client.get(self.url)
+		return json.loads(self.response.content)
+
+
 if __name__ == '__main__':
-	if len(sys.argv) != 2 and len(sys.argv) != 3:
-		print "[TEST] Pick a amount of operation."
+	if len(sys.argv) != 2 and len(sys.argv) != 3 and len(sys.argv) != 4:
+		print "[TEST] usage : python test_random.py parameter operation"		
+		print "[TEST] parameter = -1 : register a test user"
+		print "[TEST] parameter >= 0 : amount of operations"
+		print "[TEST] if operation is not picked a test with random operation is starting"
+		print "[TEST] optional operation in {0, 1, 2, 3, 4} with:"
+		print "[TEST] \t 0 : add"
+		print "[TEST] \t 1 : add_folder"
+		print "[TEST] \t 2 : delete"
+		print "[TEST] \t 3 : delete_folder"
+		print "[TEST] \t 4 : change_folder"
 		sys.exit(1)
 
 	try:
@@ -124,53 +145,63 @@ if __name__ == '__main__':
 		print "[TEST] Pick a int as amount of operation."
 		sys.exit(1)
 
-	print "[TEST] Starting crdt mail service test with " + sys.argv[1] + " random operations.\n"
+	hst_list = []
 
 	try:
-		test_0 = Test(PORT[0])
+		client_0 = Client(PORT[0])
+		hst_list.append(client_0)
 	except:
 		print "[TEST] Host 0 is not online..."
 		sys.exit(1)
 	try:
-		test_1 = Test(PORT[1])
+		client_1 = Client(PORT[1])
+		hst_list.append(client_1)
 	except:
 		print "[TEST] Host 1 is not online..."
 		sys.exit(1)
 	try:
-		test_2 = Test(PORT[2])
+		client_2 = Client(PORT[2])
+		hst_list.append(client_2)
 	except:
 		print "[TEST] Host 2 is not online..."
 		sys.exit(1)
 
-	print sys.argv[1]
-	if int(sys.argv[1]) == -1:
-		print "[TEST] Register user on one host."
-		test_0.register('test_user', '1111', '1111')
-		sys.exit(1)
+	print "[TEST] Register user on one host."
+	client_0.register('test_user', '1111', '1111')
 
 	print "[TEST] Login user on each host.\n"
-	test_0.login('test_user', '1111')
-	test_1.login('test_user', '1111')
-	test_2.login('test_user', '1111')	
-
-	hst_list = [test_0, test_1, test_2]
+	for host in hst_list:
+		while True:
+			try:
+				host.login('test_user', '1111')
+				break
+			except:
+				time.sleep(1)
+				pass
 
 	time_result = 0
-	count_result = [0, 0, 0, 0, 0]
+	count_result = [0, 0, 0, 0, 0, 0, 0]
 
-	del_msg = []
-	del_fol = []
-
-	op = ['add', 'add_folder', 'delete', 'delete_folder', 'change_folder']
+	op = ['add', 'add_folder', 'delete', 'delete_folder', 'change_folder', 'mark_readed', 'mark_unreaded']
 
 	i = 0
 	while i < amount_op:
-		host = hst_list[random.randint(0,2)]		
+		host = random.choice(hst_list)		
 
 		try:
 			operation = int(sys.argv[2])
 		except:
-			operation = random.choice([0, 1, 2, 3])
+			# 10x add
+			# 2x delete
+			# 2x addf
+			# 1x delf
+			# 10x mov
+			# 10x readed
+			# 2x unreaded
+			#operation = random.choice([5,6])
+			#operation = random.choice([1,3,4])
+			#operation = random.choice([0,0,0,0,2,2,5,5,5,5,6,6,6,6])
+			operation = random.choice([0,0,0,0,0,0,0,0,0,0,1,1,2,2,3,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,6,6])
 
 		# addMessage
 		if operation == 0:
@@ -179,20 +210,22 @@ if __name__ == '__main__':
 
 		# addFolder
 		if operation == 1:
+			fol_list = host.getFolders()
+
+			if fol_list:
+				if len(fol_list) >= 5:
+					continue
+
 			op_start = time.time()
 			host.addFolder(i)
 			
 		# deleteMessage
 		if operation == 2:
-			msg_list = host.getMessages()
+			msg_list = host.getAllMessages()
+
 			if not msg_list:
 				continue
 			msg = random.choice(msg_list)
-
-			if msg in del_msg:
-				continue
-			else:
-				del_msg.append(msg)
 
 			op_start = time.time()
 			host.deleteMessage(msg)
@@ -200,48 +233,72 @@ if __name__ == '__main__':
 		# deleteFolder
 		if operation == 3:
 			fol_list = host.getFolders()
+
 			if not fol_list:
 				continue
-			fol = random.choice(fol_list)
-			if fol in del_fol:
-				continue
 			else:
-				del_fol.append(fol)
+				if len(fol_list) <= 3:
+					continue 
+			fol = random.choice(fol_list)
 
 			op_start = time.time()
 			host.deleteFolder(fol)
 
 		# changeFolder
 		if operation == 4:
-			msg_list = host.getMessages()
 			fol_list = host.getFolders()
+
+			if not fol_list:
+				continue
+
+			fol_list.append('Inbox')
+
+			old_fol = random.choice(fol_list)
+			new_fol = random.choice(fol_list)
+
+			if old_fol == 'Inbox':
+				msg_list = host.getInbox()
+			else:
+				msg_list = host.getInFolder(old_fol)
+
+			if not msg_list:
+				continue
+
+			msg = random.choice(msg_list)
+
+			op_start = time.time()
+			host.changeFolder(new_fol, old_fol, msg)
+
+		# mark readed
+		if operation == 5:
+			msg_list = host.getUnreadedMessages()
+
 			if not msg_list:
 				continue
 			msg = random.choice(msg_list)
-			fol_with_inbox = []
-			fol_with_inbox.extend(fol_list)
-			fol_with_inbox.append('Inbox')
-			fol = random.choice(fol_with_inbox)
-			if msg in del_msg or fol in del_fol:
-				continue
-			else:
-				del_msg.append(msg)
 
 			op_start = time.time()
-			host.changeFolder(fol, msg)
-			
-		op_end = json.loads(host.response.content)['time']
-		#op_end = time.time() - op_start
+			host.mark_readed(msg)
+
+		# mark readed
+		if operation == 6:
+			msg_list = host.getReadedMessages()
+
+			if not msg_list:
+				continue
+			msg = random.choice(msg_list)
+
+			op_start = time.time()
+			host.mark_unreaded(msg)
+
+		op_end = time.time() - op_start
 		time_result += op_end
-		print '[TEST] %.4f seconds : %s' % (op_end, op[operation]) # + " seconds : " + op[operation]
+		print '[TEST] %.4f seconds : %s to %d' % (op_end, op[operation], int(host.port))
 		count_result[operation] += 1
 
 		if host.response.status_code != 200:
 			print host.response.status_code
 			sys.exit()
-		elif json.loads(host.response.content)['error']:
-			print str(operation)
-			print json.loads(host.response.content)['message']
 
 		if i >= 10 and i % (amount_op/(amount_op/10)) == 0:
 			percent = int(float(i) / float(amount_op) * 100)
@@ -253,95 +310,91 @@ if __name__ == '__main__':
 		percent = int(float(i) / float(amount_op) * 100)
 		print '\n[TEST] ' + str(percent) + ' %\tcompleted\n'
 
-		x = 0
-		while test_0.waitForHost() or test_1.waitForHost() or test_2.waitForHost():
-			if x == 100:
-				print "[TEST] Waiting for host queue."
-				x = 0
-			else:
-				x += 1
-			pass
-
-		print ""
-
 		count = 0
 		for c in count_result:
 			count += c
 
-		count += count_result[0] # outbox messages!
-		count += count_result[4] # x2 delete and add
+		start = time.time()
+		x = 0
+		while client_0.getWait() or client_1.getWait() or client_2.getWait():
+			if x == 100:
+				print "[TEST] Waiting for hosts to converge.\n"
+				x = 0
+			else:
+				x += 1
+			pass
 
 		print "[TEST] " + str(count_result[0]) + " AddMessage operation."
 		print "[TEST] " + str(count_result[1]) + " AddFolder operation."
 		print "[TEST] " + str(count_result[2]) + " DeleteMessage operation."
 		print "[TEST] " + str(count_result[3]) + " DeleteFolder operation."
 		print "[TEST] " + str(count_result[4]) + " MoveMessage operation."
+		print "[TEST] " + str(count_result[5]) + " ReadMessage operation."
+		print "[TEST] " + str(count_result[6]) + " UnreadMessage operation."
 		print "[TEST] makes " + str(count) + " operation.\n"
-			
-		print "[TEST] It took %.6f seconds." % time_result
-		print "[TEST] It took %.6f seconds per operation.\n" % float(time_result/count)
 
-		x = 0
-		while test_0.waitForPersist() or test_1.waitForPersist() or test_2.waitForPersist():
-			if x == 100:
-				print "[TEST] Waiting for host to persist."
-				x = 0
+		print "[TEST] It took %.6f seconds (only the operation)." % time_result
+		print "[TEST] It took %.6f seconds per operation (only the operation).\n" % float(time_result/count)
+
+		print "[TEST] Wating for hosts to converge %.12f seconds." % (time.time() - start)
+		print "[TEST] Wating for hosts to converge %.12f seconds per operation.\n" % float((time.time() - start)/count)			
+
+	inbox_0 = set(client_0.getInbox())
+	outbox_0 = set(client_0.getOutbox())
+	folders_0 = set(client_0.getFolders())
+	all_0 = set(client_0.getAllMessages())
+	readed_0 = set(client_0.getReadedMessages())
+	unreaded_0 = set(client_0.getUnreadedMessages())
+
+	inbox_1 = set(client_1.getInbox())
+	outbox_1 = set(client_1.getOutbox())
+	folders_1 = set(client_1.getFolders())
+	all_1 = set(client_1.getAllMessages())
+	readed_1 = set(client_1.getReadedMessages())
+	unreaded_1 = set(client_1.getUnreadedMessages())
+
+	inbox_2 = set(client_2.getInbox())
+	outbox_2 = set(client_2.getOutbox())
+	folders_2 = set(client_2.getFolders())
+	all_2 = set(client_2.getAllMessages())
+	readed_2 = set(client_2.getReadedMessages())
+	unreaded_2 = set(client_2.getUnreadedMessages())
+
+	all_len = 0
+
+	if inbox_0 == inbox_1 == inbox_2:
+		all_len += len(inbox_0)
+		print '[TEST] Passed inbox check - got ' + str(len(inbox_0)) + ' messages.'
+
+	if outbox_0 == outbox_1 == outbox_2:
+		all_len += len(outbox_0)
+		print '[TEST] Passed outbox check - got ' + str(len(outbox_0)) + ' messages.'
+
+	if folders_0 == folders_1 == folders_2:
+		all_len += len(folders_0)
+		print '[TEST] Passed folder check - got ' + str(len(folders_0)) + ' folders.'
+
+		for fol in folders_0:
+			in_fol_0 = set(client_0.getInFolder(fol))
+			in_fol_1 = set(client_1.getInFolder(fol))
+			in_fol_2 = set(client_1.getInFolder(fol))
+			if in_fol_0 == in_fol_1 == in_fol_2:
+				all_len += len(in_fol_0)
+				print '\t[TEST] Passed subcheck - got ' + str(len(in_fol_0)) + ' messages in folder.'
 			else:
-				x += 1
-			pass
+				print '\t[TEST] Not Passed subcheck!'
 
-	dist_time = test_0.getSendTime()['time'] + test_1.getSendTime()['time'] + test_2.getSendTime()['time']
-	dist_time = dist_time/float(3)
+	print '[TEST] makes ' + str(all_len) + ' messages/folders.\n'
 
-	print "\n[TEST] Time for sending in sending thread : " + str(dist_time) + "\n"
+	if all_0 == all_1 == all_2:
+		print '[TEST] Passed check - got ' + str(len(all_0)) + ' messages.'
+		if readed_0 == readed_1 == readed_2:
+			print '[TEST] Passed readed check - got ' + str(len(readed_0)) + "/" + str(len(all_0)) + ' messages.'
 
-	state_0 = test_0.getState()
-	add_msg_set_0 = set()
-	for msg in state_0['add_messages']:
-		add_msg_set_0.add((msg[0], msg[1]))
-	del_msg_set_0 = set(json.loads(test_0.response.content)['delete_messages'])
-	add_fol_set_0 = set(json.loads(test_0.response.content)['add_folders'])
-	del_fol_set_0 = set(json.loads(test_0.response.content)['delete_folders'])
-	out_box_set_0 = set(json.loads(test_0.response.content)['outbox_messages'])
-
-	state_1 = test_1.getState()
-	add_msg_set_1 = set()
-	for msg in state_1['add_messages']:
-		add_msg_set_1.add((msg[0], msg[1]))
-	del_msg_set_1 = set(json.loads(test_1.response.content)['delete_messages'])
-	add_fol_set_1 = set(json.loads(test_1.response.content)['add_folders'])
-	del_fol_set_1 = set(json.loads(test_1.response.content)['delete_folders'])
-	out_box_set_1 = set(json.loads(test_1.response.content)['outbox_messages'])
-
-	state_2 = test_2.getState()
-	add_msg_set_2 = set()
-	for msg in state_2['add_messages']:
-		add_msg_set_2.add((msg[0], msg[1]))
-	del_msg_set_2 = set(json.loads(test_2.response.content)['delete_messages'])
-	add_fol_set_2 = set(json.loads(test_2.response.content)['add_folders'])
-	del_fol_set_2 = set(json.loads(test_2.response.content)['delete_folders'])
-	out_box_set_2 = set(json.loads(test_2.response.content)['outbox_messages'])
-
-	if add_msg_set_0 == add_msg_set_1 == add_msg_set_2:
-		print '[TEST] Passed addMessage check - got ' + str(len(add_msg_set_0)) + ' addMessage.'
-
-	if del_msg_set_0 == del_msg_set_1 == del_msg_set_2:
-		print '[TEST] Passed delMessage check - got ' + str(len(del_msg_set_0)) + ' delMessage.'
-
-	if add_fol_set_0 == add_fol_set_1 == add_fol_set_2:
-		print '[TEST] Passed addFolder check - got ' + str(len(add_fol_set_0)) + ' addFolder.'
-
-	if del_fol_set_0 == del_fol_set_1 == del_fol_set_2:
-		print '[TEST] Passed delFolder check - got ' + str(len(del_fol_set_0)) + ' delFolder.'
-
-	if out_box_set_0 == out_box_set_1 == out_box_set_2:
-		print '[TEST] Passed outboxMessage check - got ' + str(len(out_box_set_0)) + ' outboxMessage.'
-
-	all_len = len(add_msg_set_0) + len(del_msg_set_0) + len(add_fol_set_0) + len(del_fol_set_0) + len(out_box_set_0)
-
-	print '[TEST] makes ' + str(all_len) + ' saves.'
+		if unreaded_0 == unreaded_1 == unreaded_2:
+			print '[TEST] Passed unreaded check - got ' + str(len(unreaded_0)) + "/" + str(len(all_0)) + ' messages.'
 
 	print "\n[TEST] Logout user on each host.\n"
-	test_0.logout()
-	test_1.logout()
-	test_2.logout()
+	client_0.logout()
+	client_1.logout()
+	client_2.logout()

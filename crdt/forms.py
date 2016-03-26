@@ -3,15 +3,21 @@ from django.forms import PasswordInput
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate
+from .operation import *
 
 class ChangeFolderForm(forms.Form):
-	folder_choice = forms.CharField(required=False, widget=forms.Textarea(
-        attrs={'class': 'form-control text-input input-sm', 'placeholder': 'Foldertitle', 'rows': '1', 'style':'resize:none;'}))
-	
-	def clean(self):
-		folder_choice = self.cleaned_data['folder_choice']
+	def __init__(self, *args, **kwargs):
+		self.user_id = kwargs.pop('user_id')
+		super(ChangeFolderForm, self).__init__(*args, **kwargs)
+		self.fields['folder_choice'].choices = [('Inbox', 'Inbox')]
+		self.fields['folder_choice'].choices.extend([(f.uuid, f.title) for f in getAllFolders(self.user_id)])
 
-		return folder_choice
+	folder_choice = forms.ChoiceField(widget = forms.Select(attrs={'class': "form-control input-sm"}), choices=[])
+  
+  	def clean(self):
+  		folder_choice = self.cleaned_data['folder_choice']
+
+  		return folder_choice
 
 class AddFolderForm(forms.Form):
 	def __init__(self, *args, **kwargs):
@@ -32,12 +38,17 @@ class AddFolderForm(forms.Form):
 		return title
 
 class AddMessageForm(forms.Form):
+	def __init__(self, *args, **kwargs):
+		super(AddMessageForm, self).__init__(*args, **kwargs)
+		self.fields['reader'].choices=[(user.username, user.username) for user in User.objects.all()]
+
+	reader = forms.ChoiceField(widget = forms.Select(attrs={'class': "form-control input-sm"}), choices=[])
 
 	text = forms.CharField(required=False, widget=forms.Textarea(
         attrs={'class': 'form-control text-input input-sm', 'placeholder': 'Message', 'rows': '3', 'style':'resize:none;'}))
 
-	reader = forms.CharField(required=False, widget=forms.Textarea(
-        attrs={'class': 'form-control text-input input-sm', 'placeholder': 'User', 'rows': '1', 'style':'resize:none;'}))
+	#reader = forms.CharField(required=False, widget=forms.Textarea(
+    #    attrs={'class': 'form-control text-input input-sm', 'placeholder': 'User', 'rows': '1', 'style':'resize:none;'}))
 	
 	def clean(self):
 		text = self.cleaned_data['text']
@@ -48,11 +59,6 @@ class AddMessageForm(forms.Form):
 
 		if len(text) > 320:
 			self._errors['text_length'] = "The message exceeds maximum length of 320 characters!"
-
-		try:
-			User.objects.get(username=reader)
-		except ObjectDoesNotExist:
-			self._errors['user_not_exist'] = "The user don't exist."
 
 		return text, reader
 

@@ -13,6 +13,14 @@ II. Theorie
 	5. Konsistenz
 	6. CRDT (Schwerpunkt)
 	7. Verteilter Zähler
+	8. Commit Protokoll 2PC/3PC
+III. Konzept
+	1. 
+
+IV. Implementierung
+	1. 
+	
+
 III. Methode und Ergebnis (Konzept und Implementierung trennen)
 	1. Nachrichten
 		1.1. Aufbau
@@ -36,9 +44,9 @@ III. Methode und Ergebnis (Konzept und Implementierung trennen)
 	6. Datenspeicherung
 		6.1. Models
 		6.2. SQLite
-IV. Diskusion (Evaluation)
+V. Evaluation
 	1. Testumgebung
 	2. Skalierbarkeit
 	3. Konvergenzverhalten
 	4. Optimierung
-V. Fazit
+VI. Fazit

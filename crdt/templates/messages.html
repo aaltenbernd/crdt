@@ -71,9 +71,8 @@
         <div class="row">
             <div class="col-sm-12">
                 <ul class="nav nav-pills">
-                    <li class="active"><a href="{% url 'show_messages' 'inbox' %}">Messages</a></li>
+                    <li class="active"><a href="{% url 'show_messages' 'inbox' 'unreaded' %}">Messages</a></li>
                     {% if user.is_superuser %}
-                    <li><a href="{% url 'delete_all' %}">Delete All</a></li>
                     <li><a href="{% url 'admin:index' %}">Admin</a></li>                    
                     {% endif %}
                     <li><a href="{% url 'logout' %}">Logout</a></li>
@@ -81,9 +80,7 @@
             </div>
         </div>
 
-        <hr>
-
-       
+        <hr>      
 
         <div class="row">
             <div class="col-sm-3">
@@ -91,13 +88,13 @@
 
                 <div class="row">
                     <div class="col-xs-12">
-                        <form action="{% url 'send_message' %}" method="post">
+                        <form action="{% url 'send_message' active_folder_id mark %}" method="post">
                             {% csrf_token %}
                             {% if add_message_form.errors %} {% for error in add_message_form.errors.items %}
                                 <div class="alert alert-danger" role="alert">
                                     <label class="control-label">* {{ error.1 }}</label>
                                 </div>
-                            {% endfor %} {% endif %}               
+                            {% endfor %} {% endif %}            
                             <div>
                                 {{ add_message_form.reader }}</br>
                                 {{ add_message_form.text }}</br>
@@ -114,22 +111,22 @@
                 <h5>folders:</h5>
                 <ul class="nav nav-pills nav-stacked">
                     {% if active_folder_id == 'inbox' %}
-                        <li class="active"><a href="{% url 'show_messages' 'inbox' %}">Inbox</a></li>
+                        <li class="active"><a href="{% url 'show_messages' 'inbox' 'unreaded' %}">Inbox</a></li>
                     {% else %}
-                        <li><a href="{% url 'show_messages' 'inbox' %}">Inbox</a></li>
+                        <li><a href="{% url 'show_messages' 'inbox' 'unreaded' %}">Inbox</a></li>
                     {% endif %}
                     {% if folders %} {% for folder in folders %}
                         {% if folder.uuid == active_folder_id %}
-                            <li class="active" ><a href="{% url 'show_messages' folder.uuid %}">{{ folder.title }}</a></li>
+                            <li class="active" ><a href="{% url 'show_messages' folder.uuid 'unreaded' %}">{{ folder.title }}</a></li>
                         {% else %}
-                            <li><a href="{% url 'show_messages' folder.uuid %}">{{ folder.title }}</a></li>
+                            <li><a href="{% url 'show_messages' folder.uuid 'unreaded' %}">{{ folder.title }}</a></li>
                         {% endif %}
                     {% endfor %} {% endif %}
                     <hr>
                     {% if active_folder_id == 'outbox' %}
-                        <li class="active"><a href="{% url 'show_messages' 'outbox' %}">Outbox</a></li>
+                        <li class="active"><a href="{% url 'show_messages' 'outbox' 'unreaded' %}">Outbox</a></li>
                     {% else %}
-                        <li><a href="{% url 'show_messages' 'outbox' %}">Outbox</a></li>
+                        <li><a href="{% url 'show_messages' 'outbox' 'unreaded' %}">Outbox</a></li>
                     {% endif %}
 
                 </ul>
@@ -138,11 +135,11 @@
 
                 <div id="send" class="tab-pane fade in active">
                     {% if active_folder_id == 'inbox'%}
-                    <form action="{% url 'add_folder' 'inbox' %}" method="post">
+                    <form action="{% url 'add_folder' 'inbox' mark %}" method="post">
                     {% elif active_folder_id == 'outbox' %}
-                    <form action="{% url 'add_folder' 'outbox' %}" method="post">
+                    <form action="{% url 'add_folder' 'outbox' mark %}" method="post">
                     {% else %}
-                    <form action="{% url 'add_folder' active_folder_id %}" method="post">
+                    <form action="{% url 'add_folder' active_folder_id mark %}" method="post">
                     {% endif %}
                         {% csrf_token %} 
                         {% if add_folder_form.errors %} {% for error in add_folder_form.errors.items %}
@@ -173,9 +170,23 @@
             </br>
             </div>
 
-            <div class="col-sm-9">
-                
-                <h5>messages:</h5>
+            <div class="col-sm-9">             
+
+                <div class="row">
+                    <div class="col-sm-6">
+                    <ul class="nav nav-pills">
+                        {% if mark == 'unreaded' %}
+                            <li class="active"><a href="{% url 'show_messages' active_folder_id 'unreaded' %}">Unreaded</a></li>
+                            <li><a href="{% url 'show_messages' active_folder_id 'readed' %}">Readed</a></li>
+                        {% elif mark == 'readed' %}
+                            <li><a href="{% url 'show_messages' active_folder_id 'unreaded' %}">Unreaded</a></li>
+                            <li class="active"><a href="{% url 'show_messages' active_folder_id 'readed' %}">Readed</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                </div>  
+
+                </br>             
                 
 
                 {% for message in messages %}
@@ -202,16 +213,16 @@
                             {% elif active_folder_id == 'outbox' %}
                             <div class="panel-footer">Outbox</div>
                             {% else %}
-                            <div class="panel-footer">{{ message.folder }}</div>
+                            <div class="panel-footer">{{ active_folder_id }}</div>
                             {% endif %}
                         </div>
                     </div>                    
                     <div class="col-sm-4">
                         {% if folders and active_folder_id != 'outbox' %}
                         {% if active_folder_id == 'inbox' %}
-                        <form action="{% url 'change_folder' 'inbox' message.uuid %}" method="post">
+                        <form action="{% url 'change_folder' 'inbox' message.uuid mark %}" method="post">
                         {% else %}
-                        <form action="{% url 'change_folder' active_folder_id message.uuid %}" method="post">
+                        <form action="{% url 'change_folder' active_folder_id message.uuid mark %}" method="post">
                         {% endif %}
                         {% csrf_token %}
                             {{ change_folder_form.folder_choice }}</br>
@@ -220,12 +231,21 @@
                             </button></br>
                         </form>
                         {% endif %}
+                        <form action="{% url 'mark' message.uuid active_folder_id mark %}">
+                            <button class="btn btn-default btn-block btn-sm" type="submit" value="Submit">
+                                {% if mark == 'unreaded' %}
+                                    Mark Readed
+                                {% elif mark == 'readed' %}
+                                    Mark Unreaded
+                                {% endif %}
+                            </button></br>
+                        </form>
                         {% if active_folder_id == 'inbox' %}
-                        <form action="{% url 'delete' 'inbox' message.uuid %}">
+                        <form action="{% url 'delete' 'inbox' message.uuid mark %}">
                         {% elif active_folder_id == 'outbox' %}
-                        <form action="{% url 'delete' 'outbox' message.uuid %}">
+                        <form action="{% url 'delete' 'outbox' message.uuid mark %}">
                         {% else %}
-                        <form action="{% url 'delete' active_folder_id message.uuid %}">
+                        <form action="{% url 'delete' active_folder_id message.uuid mark %}">
                         {% endif %}
                             <button class="btn btn-default btn-block btn-sm" type="submit" value="Submit">
                                 Delete

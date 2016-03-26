@@ -1,16 +1,11 @@
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+import json
+
+from django.http import HttpResponseForbidden, HttpResponseNotFound, HttpResponseBadRequest, HttpResponse, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.core import serializers
-
+from django.conf import settings
 from .models import *
 from .operation import *
-
-import json
-import time
-
-from django.conf import settings
 
 def api_register(request):
 	if request.method == 'POST':
@@ -19,47 +14,44 @@ def api_register(request):
 		password_confirm = request.POST['password_confirm']
 
 		if password != password_confirm:
-			return JsonResponse(dict(error=True, message="Password don't match."))
+			return HttpResponseBadRequest()
 
-		uuid = createUser(username, password)
+		createUser(username, password)
 
-		return JsonResponse(dict(error=False, message="User created / or allready exist.", uuid=str(uuid)))
+		return HttpResponse(status=200)
 
-	return JsonResponse(dict(error=True, message="No post request."))
+	return HttpResponseNotFound()
 
 def api_login(request):
 	if request.method == 'POST':
 		username = request.POST.get('username')
 
 		if username is None:
-			return JsonResponse(dict(error=True, message="Username is none."))
+			return HttpResponseBadRequest()
 
 		password = request.POST.get('password')
 
 		if password is None:
-			return JsonResponse(dict(error=True, message="password is none."))
+			return HttpResponseBadRequest()
 
 		user = authenticate(username=username, password=password)
 
 		login(request,user)
 
 		if user.is_authenticated():
-			return JsonResponse(dict(error=False, message="Logged in."))
+			return HttpResponse(status=200)
 		else:
-			return JsonResponse(dict(error=True, message="Username is not authenticated."))
+			return HttpResponseForbidden()
 	
-	return JsonResponse(dict(error=True, message="No post request."))
+	return HttpResponseNotFound()
 
 def api_logout(request):
 	logout(request)
-	return JsonResponse(dict(error=False, message="Logged out."))
+	return HttpResponse(status=200)
 
 def api_addMessage(request):
-	op_start = time.time()
 	if not request.user.is_authenticated():
-		return JsonResponse(dict(error=True, message="User is not authenticated."))
-	op_end = time.time() - op_start
-	print "authentication time .%12f" % op_end
+		return HttpResponseForbidden()
 
 	if request.method == 'POST':
 		text = request.POST.get('text')
@@ -69,31 +61,36 @@ def api_addMessage(request):
 		author_uuid = request.user.userprofile.uuid
 
 		if reader is None:
-			return JsonResponse(dict(error=True, message="User don't exist."))
+			return HttpResponseBadRequest()
 
 		message = addMessage(request.user.userprofile.uuid, text, author_uuid, reader_uuid)
 
 		if message is None:
-			return JsonResponse(dict(error=True, message="No message added."))
+			return HttpResponseBadRequest()
 		else:			
-			return JsonResponse(dict(error=False, message="Added message.", uuid=message[0], time=message[1]))
+			return HttpResponse(status=200)
 
-	return JsonResponse(dict(error=True, message="No post request."))
+	return HttpResponseNotFound()
 
-def api_deleteMessage(request, message_id):
+def api_deleteMessage(request):
 	if not request.user.is_authenticated():
-		return JsonResponse(dict(error=True, message="User is not authenticated."))
+		return HttpResponseForbidden()
 
-	delete_message = deleteMessage(request.user.userprofile.uuid, message_id)
+	if request.method == 'POST':
+		message_id = request.POST.get('message_id')
 
-	if delete_message is None:
-		return JsonResponse(dict(error=True, message="No message deleted."))
-	else:
-		return JsonResponse(dict(error=False, message="Deleted message.", uuid=delete_message[0], time=delete_message[1]))
+		delete_message = deleteMessage(request.user.userprofile.uuid, message_id)
+
+		if delete_message is None:
+			return HttpResponseBadRequest()
+		else:
+			return HttpResponse(status=200)
+
+	return HttpResponseNotFound()
 
 def api_addFolder(request):
 	if not request.user.is_authenticated():
-		return JsonResponse(dict(error=True, message="User is not authenticated."))
+		return HttpResponseForbidden()
 
 	if request.method == "POST":
 
@@ -102,92 +99,131 @@ def api_addFolder(request):
 		folder = addFolder(request.user.userprofile.uuid, title)
 
 		if folder is None:
-			return JsonResponse(dict(error=True, message="No folder added."))
-		else:
-			return JsonResponse(dict(error=False, message="Added folder.", uuid=folder[0], time=folder[1]))
+			return HttpResponseBadRequest()
+		
+		return HttpResponse(status=200)
 
-	return JsonResponse(dict(error=True, message="No post request."))
+	return HttpResponseNotFound()
 
-def api_deleteFolder(request, folder_id):
+def api_deleteFolder(request):
 	if not request.user.is_authenticated():
-		return JsonResponse(dict(error=True, message="User is not authenticated."))
-
-	delete_folder = deleteFolder(request.user.userprofile.uuid, folder_id)
-
-	if delete_folder is None:
-		return JsonResponse(dict(error=True, message="No folder deleted."))
-	else:
-		return JsonResponse(dict(error=False, message="Deleted folder.", uuid=delete_folder[0], time=delete_folder[1]))
-
-def api_changeFolder(request, message_id):
-	if not request.user.is_authenticated():
-		return JsonResponse(dict(error=True, message="User is not authenticated."))
+		return HttpResponseForbidden()
 
 	if request.method == "POST":
-		folder_choice = request.POST.get('folder_choice')
+		folder_id = request.POST.get('folder_id')
 
-		new_message = changeFolder(request.user.userprofile.uuid, message_id, folder_choice, True)
+		delete_folder = deleteFolder(request.user.userprofile.uuid, folder_id)
+
+		if delete_folder is None:
+			return HttpResponseBadRequest()
+		
+		return HttpResponse(status=200)
+
+	return HttpResponseNotFound()
+
+def api_changeFolder(request):
+	if not request.user.is_authenticated():
+		return HttpResponseForbidden()
+
+	if request.method == "POST":
+		message_id = request.POST.get('message_id')
+		folder_choice = request.POST.get('folder_choice')
+		old_folder = request.POST.get('old_folder')
+
+		new_message = changeFolder(request.user.userprofile.uuid, message_id, old_folder, folder_choice)
 
 		if new_message is None:
-			return JsonResponse(dict(error=True, message="Folder not changed."))
-		else:
-			return JsonResponse(dict(error=False, message="Changed folder.", uuid=new_message[0], time=new_message[1]))
+			return HttpResponseBadRequest()
+		
+		return HttpResponse(status=200)
 
-	return JsonResponse(dict(error=True, message="No post request."))
+	return HttpResponseNotFound()
 
-def api_getMessages(request):
-	return JsonResponse([str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid)], safe=False)
+def api_mark_readed(request):
+	if not request.user.is_authenticated():
+		return HttpResponseForbidden()
+
+	if request.method == "POST":
+		message_id = request.POST.get('message_id')
+
+		ret = mark_readed(request.user.userprofile.uuid, message_id)
+
+		return HttpResponse(status=200)
+
+	return HttpResponseNotFound()
+
+def api_mark_unreaded(request):
+	if not request.user.is_authenticated():
+		return HttpResponseForbidden()
+
+	if request.method == "POST":
+		message_id = request.POST.get('message_id')
+
+		ret = mark_unreaded(request.user.userprofile.uuid, message_id)
+
+		return HttpResponse(status=200)
+
+	return HttpResponseNotFound()
+
+def api_getOutbox(request):
+	if not request.user.is_authenticated():
+		return HttpResponseForbidden()
+
+	return JsonResponse([str(msg.uuid) for msg in settings.SET_MANAGER.getOutbox()], safe=False)
+
+def api_getInbox(request):
+	if not request.user.is_authenticated():
+		return HttpResponseForbidden()
+
+	return JsonResponse([str(msg.uuid) for msg in settings.SET_MANAGER.getInbox()], safe=False)
 
 def api_getFolders(request):
-	return JsonResponse([str(fol.uuid) for fol in getAllFolders(request.user.userprofile.uuid)], safe=False)
-
-def api_getState(request):
-	data = {}
-	data['outbox_messages'] = [str(msg.uuid) for msg in settings.SET_MANAGER.getOutboxMessages()]
-	data['add_messages'] = [(str(msg.folder), str(msg.uuid)) for msg in settings.SET_MANAGER.getAddMessages()]
-	data['delete_messages'] = [str(msg.uuid) for msg in settings.SET_MANAGER.getDeleteMessages()]
-	data['add_folders'] = [str(fol.uuid) for fol in settings.SET_MANAGER.getAddFolders()]
-	data['delete_folders'] = [str(fol.uuid) for fol in settings.SET_MANAGER.getDeleteFolders()]
-	return JsonResponse(data)
-
-def api_getQueue(request):
 	if not request.user.is_authenticated():
-		return JsonResponse(dict(error=True, message="User is not authenticated."))
+		return HttpResponseForbidden()
+
+	return JsonResponse([str(fol.uuid) for fol in settings.SET_MANAGER.getFolders()], safe=False)
+
+def api_getInFolder(request):
+	if not request.user.is_authenticated():
+		return HttpResponseForbidden()
+
+	if request.method == "POST":
+		folder_id = request.POST.get('folder_id')
+
+		return JsonResponse([str(msg.uuid) for msg in settings.SET_MANAGER.getInFolder(str(folder_id))], safe=False)
+
+	return HttpResponseNotFound()
+
+def api_getAllMessages(request):
+	if not request.user.is_authenticated():
+		return HttpResponseForbidden()
+
+	return JsonResponse([str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'all')], safe=False)
+
+def api_getReadedMessages(request):
+	if not request.user.is_authenticated():
+		return HttpResponseForbidden()
+
+	return JsonResponse([str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'readed')], safe=False)
+
+def api_getUnreadedMessages(request):
+	if not request.user.is_authenticated():
+		return HttpResponseForbidden()
+
+	return JsonResponse([str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'unreaded')], safe=False)
+
+def api_getWait(request):
+	if not request.user.is_authenticated():
+		return HttpResponseForbidden()
 
 	for host in settings.OTHER_HOSTS:
-		if settings.QUEUE[host['id']].qsize() > 0:
-			queue = True
-			break
-	else:
-		queue = False
+		if not settings.QUEUE[host['id']].empty():
+			return HttpResponseBadRequest()
 
-	return JsonResponse(queue, safe=False)
+	if not settings.SET_MANAGER.buffer.empty():
+		return HttpResponseBadRequest()
 
-def api_getSetManagerQueue(request):
-	if not request.user.is_authenticated():
-		return JsonResponse(dict(error=True, message="User is not authenticated."))
+	if not settings.SET_MANAGER.queue.empty():
+		return HttpResponseBadRequest()
 
-	if settings.SET_MANAGER.queue.qsize() > 0:
-			queue = True
-	else:
-		queue = False
-
-	print queue
-
-	return JsonResponse(queue, safe=False)
-
-def api_getSendTime(request):
-	if not request.user.is_authenticated():
-		return JsonResponse(dict(error=True, message="User is not authenticated."))
-
-	time = 0
-	count = 0
-	for host in settings.OTHER_HOSTS:
-		time += settings.SEND_TIME[host['id']]
-		count += 1
-
-	if count > 0:
-		time = float(time)/float(count)
-
-	return JsonResponse(dict(error=False, time=time))
-
+	return HttpResponse(status=200)

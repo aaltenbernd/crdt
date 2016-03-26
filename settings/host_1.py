@@ -23,10 +23,13 @@ for host in OTHER_HOSTS:
     SEND_TIME[host['id']] = float(0)
     QUEUE[host['id']] = Queue.Queue()
 
-from crdt.send import send_thread
+SENDER = {}
+
+from crdt.send import Sender
 if sys.argv[1] == 'run_host':
     for host in OTHER_HOSTS:
-        thread.start_new_thread(send_thread, (host, ))
+        SENDER[host['id']] = Sender(host['port'])
+        thread.start_new_thread(SENDER[host['id']].run, (host, ))
 
 DATABASES = {
     'default': {
@@ -46,7 +49,10 @@ DATABASES = {
     }
 }'''
 
-from crdt.set_manager import SetManager
+from crdt.set_manager import SetManager, FlatManager
 if sys.argv[1] == 'run_host':
     SET_MANAGER = SetManager()
     thread.start_new_thread(SET_MANAGER.persist, ())
+    FLAT_MANAGER = FlatManager()
+    thread.start_new_thread(FLAT_MANAGER.run, ())
+    #thread.start_new_thread(SET_MANAGER.sync, ())
