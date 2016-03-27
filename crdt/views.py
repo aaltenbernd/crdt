@@ -10,7 +10,7 @@ from .forms import *
 from .operation import *
 
 def index(request):
-    return redirect('show_messages', 'inbox', 'unreaded')
+    return redirect('show_messages', 'inbox', 'unreaded', '0:100')
 
 def send_message(request, active_folder_id, mark):
     if not request.user.is_authenticated():
@@ -31,10 +31,10 @@ def send_message(request, active_folder_id, mark):
 
             addMessage(request.user.userprofile.uuid, text, author_uuid, reader_uuid)
 
-            data = procede_data(request, active_folder_id, mark)
+            data = procede_data(request, active_folder_id, mark, '0:100')
             return render(request, 'messages.html', data)
 
-    data = procede_data(request, active_folder_id, mark)
+    data = procede_data(request, active_folder_id, mark, '0:100')
     data['add_message_form'] = form
 
     return render(request, 'messages.html', data)
@@ -51,14 +51,14 @@ def add_folder(request, active_folder_id, mark):
 
             addFolder(request.user.userprofile.uuid, title)
 
-            data = procede_data(request, active_folder_id, mark)
+            data = procede_data(request, active_folder_id, mark, '0:100')
             return render(request, 'messages.html', data)
 
-    data = procede_data(request, active_folder_id, mark)
+    data = procede_data(request, active_folder_id, mark, '0:100')
     data['add_folder_form'] = form
     return render(request, 'messages.html', data)
 
-def mark(request, message_id, active_folder_id, mark):
+def mark(request, message_id, active_folder_id, mark, msg_slice):
     if not request.user.is_authenticated():
         return redirect('login')
 
@@ -67,9 +67,34 @@ def mark(request, message_id, active_folder_id, mark):
     if mark == 'unreaded':
         mark_readed(request.user.userprofile.uuid, message_id)
 
-    return redirect('show_messages', active_folder_id, mark)
+    return redirect('show_messages', active_folder_id, mark, '0:100')
 
-def procede_data(request, active_folder_id, mark):
+def set_pagination(request, active_folder_id, mark):
+    if not request.user.is_authenticated():
+        return redirect('login')
+
+    if request.method == 'POST':
+
+        if active_folder_id == 'inbox':
+            messages = getAllInboxMessages(request.user.userprofile.uuid, mark)
+        elif active_folder_id == 'outbox':
+            messages = getAllOutboxMessages(request.user.userprofile.uuid, mark)
+        else:
+            messages = getAllMessagesInFolder(request.user.userprofile.uuid, active_folder_id, mark)
+
+        form = PaginationForm(request.POST, len_messages=len(messages))
+
+        if form.is_valid():
+            msg_slice = request.POST.get('pagination')
+
+            data = procede_data(request, active_folder_id, mark, msg_slice)
+            data['pagination_form'] = form
+            return render(request, 'messages.html', data)
+
+    return redirect('show_messages', active_folder_id, mark, '0:100')
+
+
+def procede_data(request, active_folder_id, mark, msg_slice):
     if active_folder_id != 'inbox' and active_folder_id != 'outbox':
         active_folder_id = uuid.UUID(active_folder_id)
 
@@ -91,28 +116,34 @@ def procede_data(request, active_folder_id, mark):
 
     change_folder_form = ChangeFolderForm(user_id=request.user.userprofile.uuid)
 
+    len_messages = len(messages)
+
+    pagination_form = PaginationForm(len_messages=len_messages)
+
     data = {'add_message_form': add_message_form,
             'add_folder_form': add_folder_form, 
             'change_folder_form': change_folder_form,
-            'messages': messages[0:10], 
-            'folders': folders[0:10],
+            'pagination_form': pagination_form,
+            'messages': messages, 
+            'folders': folders,
             'other_hosts': settings.OTHER_HOSTS, 
             'running_host': settings.RUNNING_HOST['id'], 
             'active_folder_id': active_folder_id,
             'user': request.user,
             'users': User.objects.all(),
-            'len_messages': len(messages),
+            'len_messages': len_messages,
             'len_folders': len(folders),
             'mark': mark,
+            'msg_slice': msg_slice
             }
 
     return data
 
-def show_messages(request, active_folder_id, mark):
+def show_messages(request, active_folder_id, mark, msg_slice):
     if not request.user.is_authenticated():
         return redirect('login')
 
-    data = procede_data(request, active_folder_id, mark)
+    data = procede_data(request, active_folder_id, mark, msg_slice)
 
     return render(request, 'messages.html', data)
 
@@ -135,10 +166,10 @@ def change_folder(request, active_folder_id, message_id, mark):
             else:
                 changeFolder(request.user.userprofile.uuid, message_id, active_folder_id, folder_choice)
 
-            data = procede_data(request, active_folder_id, mark)
+            data = procede_data(request, active_folder_id, mark, '0:100')
             return render(request, 'messages.html', data)
 
-    data = procede_data(request, active_folder_id, mark)
+    data = procede_data(request, active_folder_id, mark, '0:100')
     data['change_folder_form'] = form
     return render(request, 'messages.html', data)
 
@@ -194,7 +225,7 @@ def delete(request, active_folder_id, message_id, mark):
     else:
         deleteMessage(request.user.userprofile.uuid, message_id) 
 
-    return redirect('show_messages', active_folder_id, mark)
+    return redirect('show_messages', active_folder_id, mark, '0:100')
 
 def delete_folder(request, active_folder_id):
     if not request.user.is_authenticated():
@@ -202,7 +233,7 @@ def delete_folder(request, active_folder_id):
 
     deleteFolder(request.user.userprofile.uuid, active_folder_id)
 
-    return redirect('show_messages', 'inbox', 'unreaded')
+    return redirect('show_messages', 'inbox', 'unreaded', '0:100')
 
 def receive(request):
     if request.method == 'POST':

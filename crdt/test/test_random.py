@@ -314,16 +314,6 @@ if __name__ == '__main__':
 		for c in count_result:
 			count += c
 
-		start = time.time()
-		x = 0
-		while client_0.getWait() or client_1.getWait() or client_2.getWait():
-			if x == 100:
-				print "[TEST] Waiting for hosts to converge.\n"
-				x = 0
-			else:
-				x += 1
-			pass
-
 		print "[TEST] " + str(count_result[0]) + " AddMessage operation."
 		print "[TEST] " + str(count_result[1]) + " AddFolder operation."
 		print "[TEST] " + str(count_result[2]) + " DeleteMessage operation."
@@ -336,6 +326,17 @@ if __name__ == '__main__':
 		print "[TEST] It took %.6f seconds (only the operation)." % time_result
 		print "[TEST] It took %.6f seconds per operation (only the operation).\n" % float(time_result/count)
 
+	start = time.time()
+	x = 0
+	while client_0.getWait() or client_1.getWait() or client_2.getWait():
+		if x == 100:
+			print "[TEST] Waiting for hosts to converge.\n"
+			x = 0
+		else:
+			x += 1
+		pass
+
+	if i != 0:
 		print "[TEST] Wating for hosts to converge %.12f seconds." % (time.time() - start)
 		print "[TEST] Wating for hosts to converge %.12f seconds per operation.\n" % float((time.time() - start)/count)			
 

@@ -219,6 +219,8 @@ def api_getWait(request):
 	for host in settings.OTHER_HOSTS:
 		if not settings.QUEUE[host['id']].empty():
 			return HttpResponseBadRequest()
+		if settings.SENDER[host['id']].sending:
+			return HttpResponseBadRequest()
 
 	if not settings.SET_MANAGER.buffer.empty():
 		return HttpResponseBadRequest()

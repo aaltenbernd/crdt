@@ -15,11 +15,13 @@ II. Theorie
 	7. Verteilter Zähler
 	8. Commit Protokoll 2PC/3PC
 III. Konzept
-	1. 
+	1. Nachrichten
+	2. Ordner
+	3. Verschieben
+	4. Markieren
 
 IV. Implementierung
-	1. 
-	
+	1. 	
 
 III. Methode und Ergebnis (Konzept und Implementierung trennen)
 	1. Nachrichten

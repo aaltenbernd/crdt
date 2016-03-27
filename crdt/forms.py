@@ -5,6 +5,28 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate
 from .operation import *
 
+class PaginationForm(forms.Form):
+	def __init__(self, *args, **kwargs):
+		self.len_messages = kwargs.pop('len_messages')
+		super(PaginationForm, self).__init__(*args, **kwargs)
+
+		self.fields['pagination'].choices = []
+
+		i = 0
+		while i < self.len_messages-100:
+			self.fields['pagination'].choices.append(("%d:%d" % (i, i+100), "%d bis %d" % (i, i+100)))
+			i += 100
+
+		self.fields['pagination'].choices.append(("%d:" % i, "%d bis Ende" % i))
+
+	pagination = forms.ChoiceField(widget = forms.Select(attrs={'class': "form-control input-sm"}), choices=[])
+
+  	def clean(self):
+  		pagination = self.cleaned_data['pagination']
+
+  		return pagination
+
+
 class ChangeFolderForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		self.user_id = kwargs.pop('user_id')
