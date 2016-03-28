@@ -96,11 +96,15 @@ class SetManager():
 			if not self.mark.get(str(data['uuid']), None):
 				self.mark[str(data['uuid'])] = [0, 0, set(), set()]
 
-			self.mark[str(data['uuid'])][2].add(self.mark[str(data['uuid'])][0])
+			self.mark[str(data['uuid'])][2].add(data['number'])
 
-			obj = Readed(message_id=data['uuid'], number=self.mark[str(data['uuid'])][0])
+			obj = Readed(message_id=data['uuid'], number=data['number'])
 
-			self.mark[str(data['uuid'])][0] += 1			
+			if self.mark[str(data['uuid'])][0] < data['number']+1:
+				self.mark[str(data['uuid'])][0] = data['number']+1
+
+			print self.mark[str(data['uuid'])][0]
+			print self.mark[str(data['uuid'])][2]			
 
 			return obj
 
@@ -108,11 +112,15 @@ class SetManager():
 			if not self.mark.get(str(data['uuid']), None):
 				self.mark[str(data['uuid'])] = [0, 0, set(), set()]
 
-			self.mark[str(data['uuid'])][3].add(self.mark[str(data['uuid'])][1])
+			self.mark[str(data['uuid'])][3].add(data['number'])
 
-			obj = Unreaded(message_id=data['uuid'], number=self.mark[str(data['uuid'])][1])
+			obj = Unreaded(message_id=data['uuid'], number=data['number'])
 
-			self.mark[str(data['uuid'])][1] += 1
+			if self.mark[str(data['uuid'])][1] < data['number']+1:
+				self.mark[str(data['uuid'])][1] = data['number']+1
+
+			print self.mark[str(data['uuid'])][1]
+			print self.mark[str(data['uuid'])][3]
 
 			return obj
 
@@ -188,8 +196,8 @@ class SetManager():
 		return obj
 
 	def messageReaded(self, uuid):
-		#print self.mark[str(uuid)][2]
-		#print self.mark[str(uuid)][3]
+		print self.mark[str(uuid)][2]
+		print self.mark[str(uuid)][3]
 		len_r = len(self.mark[str(uuid)][2])
 		len_u = len(self.mark[str(uuid)][3])
 		return (len_r - len_u) > 0
@@ -334,10 +342,12 @@ class SetManager():
 					self.in_folder[str(folder.uuid)] = self.in_folder[str(folder.uuid)].difference(self.in_folder[str(other_folder.uuid)])
 
 			for message in self.in_folder[str(folder.uuid)]:
-				self.mark[str(message.uuid)][2] = set()
-				self.mark[str(message.uuid)][3] = set()
 				if self.messageReaded(message.uuid):
-					self.mark[str(message.uuid)][2].add(set(self.mark[str(message.uuid)][0]-1))
+					self.mark[str(message.uuid)][2] = set()
+					self.mark[str(message.uuid)][2].add(self.mark[str(message.uuid)][0]-1)
+				else:
+					self.mark[str(message.uuid)][2] = set()
+				self.mark[str(message.uuid)][3] = set()
 
 		# flat add_messages
 		for message in self.add_messages.intersection(self.delete_messages):
@@ -360,10 +370,12 @@ class SetManager():
 
 		# flat marker
 		for message in set(self.add_messages):
-			self.mark[str(message.uuid)][2] = set()
-			self.mark[str(message.uuid)][3] = set()
 			if self.messageReaded(message.uuid):
-				self.mark[str(message.uuid)][2].add(set(self.mark[str(message.uuid)][0]-1))
+				self.mark[str(message.uuid)][2] = set()
+				self.mark[str(message.uuid)][2].add(self.mark[str(message.uuid)][0]-1)
+			else:
+				self.mark[str(message.uuid)][2] = set()
+			self.mark[str(message.uuid)][3] = set()
 
 		# flat delete_messages
 		self.delete_messages = set()
@@ -519,7 +531,7 @@ class FlatManager():
 		while True:
 			try:
 				if self.queue.empty():
-					if settings.SET_MANAGER.getOpCount() >= 500 and not self.flat:
+					if settings.SET_MANAGER.getOpCount() >= 100 and not self.flat:
 						self.prepare()
 					else:
 						time.sleep(1)

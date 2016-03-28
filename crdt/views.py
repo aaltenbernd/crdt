@@ -58,7 +58,7 @@ def add_folder(request, active_folder_id, mark):
     data['add_folder_form'] = form
     return render(request, 'messages.html', data)
 
-def mark(request, message_id, active_folder_id, mark, msg_slice):
+def mark(request, message_id, active_folder_id, mark):
     if not request.user.is_authenticated():
         return redirect('login')
 

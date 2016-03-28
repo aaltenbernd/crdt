@@ -14,7 +14,6 @@ RUNNING_HOST = ALL_HOSTS[0]
 OTHER_HOSTS = []
 SEND_TIME = {}
 
-
 for host in ALL_HOSTS:
 	if host != RUNNING_HOST:
 		OTHER_HOSTS.append(host)

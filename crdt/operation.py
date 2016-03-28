@@ -70,13 +70,19 @@ def changeFolder(user_id, message_id, old_folder, new_folder):
 	return new_message['uuid']
 
 def mark_readed(user_id, message_id):
-	new_marker = dict(uuid=str(message_id), operation='mark_readed')
+	if settings.SET_MANAGER.messageReaded(message_id) == True:
+		return message_id
+
+	new_marker = dict(uuid=str(message_id), operation='mark_readed', number=settings.SET_MANAGER.mark[str(message_id)][0])
 	settings.SET_MANAGER.add(new_marker, True)
 
 	return new_marker['uuid']
 
 def mark_unreaded(user_id, message_id):
-	new_marker = dict(uuid=str(message_id), operation='mark_un_readed')
+	if settings.SET_MANAGER.messageReaded(message_id) == False:
+		return message_id
+
+	new_marker = dict(uuid=str(message_id), operation='mark_un_readed', number=settings.SET_MANAGER.mark[str(message_id)][1])
 	settings.SET_MANAGER.add(new_marker, True)
 
 	return new_marker['uuid']

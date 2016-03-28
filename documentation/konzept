@@ -1,0 +1,111 @@
+III. Konzept:
+
+https://hal.archives-ouvertes.fr/file/index/docid/177693/filename/RR-treedoc.pdf
+
+1. Nachrichten
+
+Nachrichten sollen in einer Menge gehalten werden und können hinzugefügt oder gelöscht werden. Diese Operationen auf einer Menge sind nicht kommutativ, da Operationen nicht zwangsläufig in der gleichen Reihenfolge empfangen werden. In folgendem Beispiel erstellt Server A eine Nachricht m, die anschließend von Server B gelöscht wird. Empfängt Server C zuerst die Operation zum löschen der Nachricht, resultiert dieser in einen abweichenden Zustand:
+
+A --- add_A(m) ----- rmv_B(m) --> {}
+
+B --- add_A(m) ----- rmv_B(m) --> {}
+
+C --- rmv_B(m) ----- add_A(m) --> {m}
+
+Um zu gewährleisten, dass die Operationen kommutativ sind, werden nur Mengen verwendet, die erlauben, dass Elemente hinzugefügt werden. Prinzipiell existiert eine Menge [AM] mit hinzugefügten und eine Menge [DM] mit gelöschten Nachrichten. Jede hinzugefügte Nachricht hat eine eindeutige Identifikationsnummer und wird in Menge [AM] abgelegt. Sobald eine Nachricht m_A gelöscht werden soll, wird ein Ebenbild m_D erstellt. Die Nachricht m_D trägt die selbe Identifikationsnummer wie m_A und wird der Menge [DM] hinzugefügt. Sofern eine eine Nachricht m_A und eine Nachricht m_D mit selber Identifikationsnummer existiert, gilt diese Nachricht als gelöscht. Die Differenzmenge [AM] \ [DM] ergibt also die Menge der nicht gelöschten Nachrichten. Das folgende Beispiel folgt diesem Ansatz:
+
+A --- add_A(m) ----- rmv_B(m) --> {m}_A \ {m}_D = {}_R
+
+B --- add_A(m) ----- rmv_B(m) --> {m}_A \ {m}_D = {}_R
+
+C --- rmv_B(m) ----- add_A(m) --> {m}_A \ {m}_D = {}_R
+
+2. Ordner
+
+Ordner werden analog zu den Nachrichten in einer Menge [AF] mit hinzugefügten Ordnern und einer Menge [DF] mit gelöschten Ordnern gehalten. Zusätzlich hält jeder Ordner eine Menge, die Abbilder von allen Nachrichten enthält, die in diesem Ordner liegen. Wird ein Ordner gelöscht, gelten die Nachrichten, die in diesem Ordner liegen, ebenfalls als gelöscht. Liegt eine Nachricht in einem gelöschten Ordner, muss kein gelöschtes Äquivalent wie in (1.) erzeugt werden, da für jede Nachricht überprüft werden kann, ob diese in einem gelöschten Ordner liegt. Falls eine Nachricht in einem Ordner gelöscht, wird wie in (1.) ein gelöschtes Äquivalent erzeugt.
+
+3. Verschieben
+
+Initial liegen Nachrichten in keinem Ordner, sondern nur in der Menge der hinzugefügten Nachrichten. Folglich liegen diese Nachrichten in der Inbox. Soll eine Nachricht von der Inbox in einen Ordner verschoben werden muss ein Abbild der Nachricht erzeugt werden und dieses der Menge des Ordners hinzugefügt werden. Existiert eine Nachricht in einem Ordner darf diese in der Inbox nicht mehr angezeigt werden. Folgendes Beispiel illustriert diesen Zusammenhang: 
+
+AM = {m}
+DM = {}
+AF = {f(M={m})}
+DF = {}
+
+RM_in_inbox = AM \ DM \ (U (mf in AF) mf) = {}
+
+RM_in_f = f.M \ DM = {m}
+
+Soll eine Nachricht von einem Ordner in einen anderen Ordner oder in die Inbox verschoben werden, muss diese Nachricht wie in (1.) gelöscht, damit diese im ersten Ordner nicht mehr angezeigt wird, und eine neue Nachricht angelegt und diese dem anderen Ordner hinzugefügt werden. Beispiel:
+
+AM = {m_1}
+DM = {}
+AF = {f_1(M={m}), f_2(M={})}
+DF = {}
+
+Verschieben m_1 von f_1 nach f_2:
+
+AM = {m_1, m_2} (wobei m_1 und m_2 den selben Inhalt tragen)
+DM = {m_1}
+AF = {f_1(M={m_1}), f_2(M={m_2})}
+DF = {}
+
+RM_in_f_1 = f_1.M \ DM = {}
+RM_in_f_2 = f_2.M \ DM = {m_2}
+
+Falls (mindestens) zwei Server parallel versuchen eine Nachricht von der Inbox oder einem Ordner in zwei unterschiedliche Ordner zu verschieben, würde diese Nachricht beiden Ordnern hinzugefügt. Anschließend ist nicht mehr festgelegt, in welchem Ordner die Nachricht angezeigt werden soll. Beispiel: 
+
+A --- add_A(m) --- mov_A(m, f_1) --- mov_B(m, f_2) --> AF = {f_1(M={m}), f_2(M={m})}
+
+B ---------------- mov_B(m, f_2) --- mov_A(m, f_1) --> AF = {f_1(M={m}), f_2(M={m})}
+
+Eine Strategie, um diesen Konflikt aufzulösen ist es eine Ordnerhierachie aufzubauen. In dieser Strategie sind Ordner verschieden priorisiert. Wenn eine Nachricht in mehreren unterschiedlichen Ordnern liegt, wird diese nur in dem Ordner angezeigt, der die höchste Priorität hat. Die Priorität lässt sich beispielsweise durch die Identifikationsnummer der Ordner bestimmen. Welcher Ordner höher priorisiert ist, ist für den Benutzer in diesem Fall jedoch nicht ersichtlich. Eine Ordnerhierachie bietet den Vorteil, dass es einerseits nicht kompliziert umzusetzen ist und des Weiteren den verschiebe Prozess an sich vereinfacht.
+
+Wird eine Nachricht von einem Ordner in einen anderen Ordner verschoben, wobei der erste eine kleine Priorität hat als der zweit, ist es nicht mehr notwendig die Nachricht zu löschen und erneut hinzuzufügen. Die Nachricht liegt nun in beiden Ordnen wird jedoch nur in dem höher priorisierten Ordner angezeigt. Bei einer zufälligen Verschiebung von Ordnern sollte nur noch in 50 % der fällen eine neue Nachricht erzeugt werden. Daher wurde sich in der Implementierung und wegen der einfach Umsetzung für diese Strategie entschieden.
+
+Alternativ ist es auch möglich den Benutzer entscheiden zu lassen, in welchem Ordner die Nachricht. Wird eine Nachricht in zwei unterschiedliche Ordner verschoben, verbleiben diese erstmal in beiden Ordnern. Es wurde quasi eine Kopie der Nachricht erstellt. Da der Benutzer selbst diese Operation ausgeführt hat, sollte es für den Benutzer nicht für ungewöhnlich erscheinen, dass die Nachricht in zwei unterschiedlichen Ordnern liegt. Anschließend kann dieser selbst entscheiden, ob die Nachricht in einem der Ordner gelöscht wird. 
+
+4. Markieren (gelesen/ungelesen)
+
+Das Markieren von Nachrichten wird über zwei Mengen gelöst. Eine Menge [R] speichert wie oft eine Nachricht als gelesen markiert wurde und eine Menge [U] wie oft diese Nachricht als ungelesen Markiert wird. Eine Nachricht lässt sich nur als gelesen bzw. ungelesen markieren, wenn sie sich in dem jeweils anderem Zustand befindet. Sobald eine Nachricht als gelesen bzw. ungelesen markiert wird, wird ein Token angelegt und der Menge [R] bzw. [U] hinzugefügt. Um die Token unterscheiden zu können, werden diese fortlaufend nummeriert. Wird eine Nachricht auf einem Server markiert, sendet dieser die Operation mit dem entsprechenden Wert des Tokens. Jeder Server merkt sich den Maximalwert jeder Menge, so dass beim wiederholten Markieren der Wert des Tokens dem Maximalwert+1 entspricht. Empfängt ein Server ein Token muss überprüft werden, ob der Wert des Tokens den Maximalwert übersteigt und falls ja muss dieser angepasst werden. Der Zustand der Nachricht wird über die Differenz der Mengen ermittelt, d.h. enthält Menge [R] mehr Token als Menge [U] gilt diese als gelesen. Das folgende Beispiel illustriert diesen Zusammenhang:
+
+A --- read_A(m) --- read_B(m) --- read_C(m) --- unread_A(m) --- read_C(m) --> m=({r0,r1},{u0}) => {r0,r1}/{u0} = {r1} = gelesen
+
+B --- read_B(m) --- read_A(m) --- read_C(m) --- unread_A(m) --- read_C(m) --> m=({r0,r1},{u0}) => {r0,r1}/{u0} = {r1} = gelesen
+
+C --- read_C(m) --- read_A(m) --- read_C(m) --- unread_A(m) --- read_C(m) --> m=({r0,r1},{u0}) => {r0,r1}/{u0} = {r1} = gelesen
+ 
+5. Flatten
+
+Das Flatten wird benutzt, um unnötige Datenansammlungen zu reduzieren. Existiert zum Beispiel eine Nachricht und die zugehörige gelöschte Nachricht, wird diese Nachricht nicht mehr angezeigt und wird weiterhin gespeichert. Diese Nachricht können durch das Flatten endgültig gelöscht werden. Um das Flatten durchzuführen müssen sich jedoch alle Server im selben Zustand befinden. Folgendes Beispiel illustriert, falls kein gleicher Zustand gegeben ist:
+
+A --- add_A(m) --- del_B(m) --- flat_B   --> {} \ {}  
+
+B --- add_A(m) --- del_B(m) --- flat_B   --> {} \ {}
+
+C --- del_B(m) --- flat_B   --- add_A(m) --> {m} \ {}
+
+Das Flatten unterteilt sich in drei Phasen. Zuerst initiiert ein Server, auch Coordinator genannt, den Flatten Prozess, indem dieser alle einkommende Client Operationen blockiert. Hat der Coordinator noch Operationen, die verteilt werden müssen, wird solange gewartet bis diese verteilt worden sind. Anschließend sendet dieser an alle Follower, also alle anderen Server, eine Nachricht, dass das Flatten initiert wurde. Die Follower blockieren ebenfalls anschließend alle Client Operation und warten bis alle offenen Operation an die anderen Server verteilt wurden. Sind alle Operation verteilt, bestätigen diese die Initiierung.
+
+Sobald alle Server die Initiierung bestätigt haben, befinden sich die Server im selben Zustand. Anschließend buffert der Coordinator alle einkommenden Operationen, sodass während des Flattens keine neuen Operation von anderen Servern reinkommen, die den Zustand verändern. Daraufhin sendet der Coordinator den Followern eine Nachricht ihm dies nachzutun. 
+
+Buffern nun alle Server alle einkommenden Operationen von anderen Servern, kann sich der Zustand nicht mehr verändern. Anschließend wird das Flatten vom Coordinator bestätigt, indem dieser erneut eine Nachricht sendet. Alle Server führen nun das Flatten durch. Anschließend wird der Buffer abgearbeitet, Client Operationen wieder zugelassen und einkommende Operationen von anderen Servern nicht mehr gebuffert.
+
+Beim Flatten selbst werden unnötige Daten gelöscht. Dabei ist die Reihenfolge beim löschen entscheidend. Folgende Elemente können aus dem System entfernt werden:
+
+	1. Nachrichten in Ordnern, die gelöscht wurden
+	2. Nachrichten in Ordnern, die auch in anderen Ordnern vorkommen (Siehe III.3)
+		- Dabei wird nur die Nachricht in dem Ordner mit höchster Priorität nicht gelöscht
+	3. Nachrichten in der Inbox, die gelöscht wurden
+	4. Nachrichten in der Outbox, die gelöscht wurden
+	5. Ordner, die gelöscht wurden, und Nachrichten, die in diesem Ordner liegen
+		- Darf nicht vor Punkt 2. gemacht werden, da sonst Nachrichten gelöscht werden, die verschoben wurden
+	6. Markierungen 
+		- Fall 1: Nachricht gilt als gelesen 
+			- Token R mit maximalen Wert wird nicht gelöscht
+			- Token U werden gelöscht
+		- Fall 2: Nachricht gilt als ungelesen
+			- Token R und U werden gelöscht
+	7. Ebenbilder der gelöschten Nachrichten
+	8. Ebenbilder der gelöschten Ordner

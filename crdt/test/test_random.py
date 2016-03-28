@@ -191,17 +191,8 @@ if __name__ == '__main__':
 		try:
 			operation = int(sys.argv[2])
 		except:
-			# 10x add
-			# 2x delete
-			# 2x addf
-			# 1x delf
-			# 10x mov
-			# 10x readed
-			# 2x unreaded
-			#operation = random.choice([5,6])
-			#operation = random.choice([1,3,4])
-			#operation = random.choice([0,0,0,0,2,2,5,5,5,5,6,6,6,6])
-			operation = random.choice([0,0,0,0,0,0,0,0,0,0,1,1,2,2,3,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,6,6])
+			#data['number']+1
+			operation = random.choice([5,6])
 
 		# addMessage
 		if operation == 0:
