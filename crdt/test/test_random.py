@@ -40,7 +40,7 @@ class Client():
 
 		self.client = requests.session()
 		# only needed if csrf token is necessary
-		self.url = "http://127.0.0.1:" + str(self.port)
+		self.url = self.hostname + ":" + str(self.port)
 		self.client.get(self.url)
 		self.csrftoken = self.client.cookies['csrftoken']
 		self.cookies = dict(self.client.cookies)
@@ -188,6 +188,8 @@ if __name__ == '__main__':
 				host.login('test_user', '1111')
 				break
 			except:
+				print "Unexpected error:", sys.exc_info()[0]
+   				raise
 				time.sleep(1)
 				pass
 
