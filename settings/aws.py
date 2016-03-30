@@ -163,7 +163,7 @@ if sys.argv[1] == 'run_host':
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'db_host_0',
+        'NAME': 'database',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
         'HOST': 'localhost',
