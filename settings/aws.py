@@ -132,9 +132,9 @@ import Queue
 import thread
  
 ALL_HOSTS = [
-                {'id' : 0, 'port' : 8000, 'hostname' : "http://127.0.0.1"},
-                {'id' : 1, 'port' : 8001, 'hostname' : "http://127.0.0.1"},
-                {'id' : 2, 'port' : 8002, 'hostname' : "http://127.0.0.1"},
+                {'id' : 0, 'port' : 8000, 'hostname' : "http://54.93.211.150"},
+                {'id' : 1, 'port' : 8000, 'hostname' : "http://54.93.50.55"},
+                {'id' : 2, 'port' : 8000, 'hostname' : "http://54.93.224.59"},
             ]
 
 RUNNING_HOST = ALL_HOSTS[0]
