@@ -73,6 +73,9 @@ def mark_readed(user_id, message_id):
 	if settings.SET_MANAGER.messageReaded(message_id) == True:
 		return message_id
 
+	while settings.FLAT_MANAGER.getFlat():
+		time.sleep(1)
+
 	new_marker = dict(uuid=str(message_id), operation='mark_readed', number=settings.SET_MANAGER.mark[str(message_id)][0])
 	settings.SET_MANAGER.add(new_marker, True)
 
@@ -81,6 +84,9 @@ def mark_readed(user_id, message_id):
 def mark_unreaded(user_id, message_id):
 	if settings.SET_MANAGER.messageReaded(message_id) == False:
 		return message_id
+
+	while settings.FLAT_MANAGER.getFlat():
+		time.sleep(1)
 
 	new_marker = dict(uuid=str(message_id), operation='mark_un_readed', number=settings.SET_MANAGER.mark[str(message_id)][1])
 	settings.SET_MANAGER.add(new_marker, True)

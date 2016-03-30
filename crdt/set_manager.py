@@ -196,8 +196,8 @@ class SetManager():
 		return obj
 
 	def messageReaded(self, uuid):
-		print self.mark[str(uuid)][2]
-		print self.mark[str(uuid)][3]
+		print self.mark[str(uuid)][2].difference(self.mark[str(uuid)][3])
+		print self.mark[str(uuid)][3].difference(self.mark[str(uuid)][2])
 		len_r = len(self.mark[str(uuid)][2])
 		len_u = len(self.mark[str(uuid)][3])
 		return (len_r - len_u) > 0
@@ -531,7 +531,7 @@ class FlatManager():
 		while True:
 			try:
 				if self.queue.empty():
-					if settings.SET_MANAGER.getOpCount() >= 100 and not self.flat:
+					if settings.SET_MANAGER.getOpCount() >= 2500 and not self.flat:
 						self.prepare()
 					else:
 						time.sleep(1)

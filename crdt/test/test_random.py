@@ -184,6 +184,9 @@ if __name__ == '__main__':
 
 	op = ['add', 'add_folder', 'delete', 'delete_folder', 'change_folder', 'mark_readed', 'mark_unreaded']
 
+	del_msg_list = host.getAllMessages()
+	del_msg_list.extend(host.getOutbox())
+
 	i = 0
 	while i < amount_op:
 		host = random.choice(hst_list)		
@@ -192,7 +195,7 @@ if __name__ == '__main__':
 			operation = int(sys.argv[2])
 		except:
 			#data['number']+1
-			operation = random.choice([5,6])
+			operation = random.choice([0,1,2,3,4,5,6])
 
 		# addMessage
 		if operation == 0:
@@ -212,7 +215,11 @@ if __name__ == '__main__':
 			
 		# deleteMessage
 		if operation == 2:
-			msg_list = host.getAllMessages()
+			if i % 500 == 0:
+				del_msg_list = host.getAllMessages()
+				del_msg_list.extend(host.getOutbox())
+
+			msg_list = del_msg_list
 
 			if not msg_list:
 				continue
