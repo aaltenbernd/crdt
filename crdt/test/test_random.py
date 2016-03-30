@@ -3,12 +3,28 @@ import time
 import json
 import random
 import sys
+import os
 
-ALL_HOSTS = [
-                {'id' : 0, 'port' : 8000, 'hostname' : 'http://127.0.0.1'},
-                {'id' : 1, 'port' : 8001, 'hostname' : 'http://127.0.0.1'},
-                {'id' : 2, 'port' : 8002, 'hostname' : 'http://127.0.0.1'},
-            ]
+try:
+    os.environ['ENV']
+except:
+	os.environ['ENV'] = "development"
+
+if os.environ['ENV'] == "production":
+	ALL_HOSTS = [
+	                {'id' : 0, 'port' : 8000, 'hostname' : "http://54.93.211.150"},
+	                {'id' : 1, 'port' : 8000, 'hostname' : "http://54.93.50.55"},
+	                {'id' : 2, 'port' : 8000, 'hostname' : "http://54.93.224.59"},
+	            ]
+else:
+	ALL_HOSTS = [
+	                {'id' : 0, 'port' : 8000, 'hostname' : 'http://127.0.0.1'},
+	                {'id' : 1, 'port' : 8001, 'hostname' : 'http://127.0.0.1'},
+	                {'id' : 2, 'port' : 8002, 'hostname' : 'http://127.0.0.1'},
+	            ]
+
+
+
 
 def url(host, port, operation):
 	return host + ":" + str(port) + "/" + operation
