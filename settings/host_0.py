@@ -4,10 +4,10 @@ import Queue
 import thread
  
 ALL_HOSTS = [
-				{'id' : 0, 'port' : 8000},
-				{'id' : 1, 'port' : 8001},
-				{'id' : 2, 'port' : 8002},
-			]
+                {'id' : 0, 'port' : 8000, 'hostname' : "http://127.0.0.1"},
+                {'id' : 1, 'port' : 8001, 'hostname' : "http://127.0.0.1"},
+                {'id' : 2, 'port' : 8002, 'hostname' : "http://127.0.0.1"},
+            ]
 
 RUNNING_HOST = ALL_HOSTS[0]
 
@@ -28,7 +28,7 @@ SENDER = {}
 from crdt.send import Sender
 if sys.argv[1] == 'run_host':
     for host in OTHER_HOSTS:
-        SENDER[host['id']] = Sender(host['port'])
+        SENDER[host['id']] = Sender(host['port'], host['hostname'])
         thread.start_new_thread(SENDER[host['id']].run, (host, ))
 
 

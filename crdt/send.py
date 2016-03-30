@@ -6,14 +6,13 @@ from django.conf import settings
 
 from random import shuffle
 
-HOSTNAME = "http://127.0.0.1"
-BATCH_SIZE = 50
+BATCH_SIZE = 1
 
 class Sender():
-    def __init__(self, port):
+    def __init__(self, port, hostname):
         self.port = port
         self.client = requests.session()
-        self.url = HOSTNAME + ":" + str(port) + "/receive/"
+        self.url = hostname + ":" + str(port) + "/receive/"
         self.csrftoken = None
         self.cookies = None
         self.post_data = None

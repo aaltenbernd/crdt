@@ -4,15 +4,19 @@ import json
 import random
 import sys
 
-HOST = "http://127.0.0.1"
-PORT = ["8000", "8001", "8002"]
+ALL_HOSTS = [
+                {'id' : 0, 'port' : 8000, 'hostname' : 'http://127.0.0.1'},
+                {'id' : 1, 'port' : 8001, 'hostname' : 'http://127.0.0.1'},
+                {'id' : 2, 'port' : 8002, 'hostname' : 'http://127.0.0.1'},
+            ]
 
 def url(host, port, operation):
-	return host + ":" + port + "/" + operation
+	return host + ":" + str(port) + "/" + operation
 
 class Client():
-	def __init__(self, port):
+	def __init__(self, port, hostname):
 		self.port = port
+		self.hostname = hostname
 		self.username = None
 		self.password = None
 		self.response = None
@@ -25,15 +29,18 @@ class Client():
 		self.csrftoken = self.client.cookies['csrftoken']
 		self.cookies = dict(self.client.cookies)
 
+	def __str__(self):
+		return host + ":" + port
+
 	def register(self, username, password, password_confirm):
-		self.url = url(HOST, self.port, "api_register")
+		self.url = url(self.hostname, self.port, "api_register")
 		self.post_data = dict(username=username, password=password, password_confirm=password_confirm, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 		self.username = username
 		self.password = password
 
 	def login(self, username, password):
-		self.url = url(HOST, self.port, "api_login")
+		self.url = url(self.hostname, self.port, "api_login")
 		self.post_data = dict(username=username, password=password, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 		self.sessionid = self.client.cookies['sessionid']
@@ -43,84 +50,84 @@ class Client():
 		self.password = password
 
 	def logout(self):
-		self.url = url(HOST, self.port, "api_logout")
+		self.url = url(self.hostname, self.port, "api_logout")
 		self.response = self.client.get(self.url)
 
 	def addMessage(self, text):
-		self.url = url(HOST, self.port, "api_addMessage")
+		self.url = url(self.hostname, self.port, "api_addMessage")
 		self.post_data = dict(sessionid=self.sessionid, text=text, reader=self.username, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
 	def deleteMessage(self, message_id):
-		self.url = url(HOST, self.port, "api_deleteMessage")
+		self.url = url(self.hostname, self.port, "api_deleteMessage")
 		self.post_data = dict(sessionid=self.sessionid, message_id=message_id, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
 	def addFolder(self, title):
-		self.url = url(HOST, self.port, "api_addFolder")
+		self.url = url(self.hostname, self.port, "api_addFolder")
 		self.post_data = dict(sessionid=self.sessionid, title=title, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
 	def deleteFolder(self, folder_id):
-		self.url = url(HOST, self.port, "api_deleteFolder")
+		self.url = url(self.hostname, self.port, "api_deleteFolder")
 		self.post_data = dict(sessionid=self.sessionid, folder_id=folder_id, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
 	def changeFolder(self, folder_choice, old_folder, message_id):
-		self.url = url(HOST, self.port, "api_changeFolder")
+		self.url = url(self.hostname, self.port, "api_changeFolder")
 		self.post_data = dict(sessionid=self.sessionid, message_id=message_id, folder_choice=folder_choice, old_folder=old_folder, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
 	def mark_readed(self, message_id):
-		self.url = url(HOST, self.port, "api_mark_readed")
+		self.url = url(self.hostname, self.port, "api_mark_readed")
 		self.post_data = dict(sessionid=self.sessionid, message_id=message_id, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 	
 	def mark_unreaded(self, message_id):
-		self.url = url(HOST, self.port, "api_mark_unreaded")
+		self.url = url(self.hostname, self.port, "api_mark_unreaded")
 		self.post_data = dict(sessionid=self.sessionid, message_id=message_id, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
 	def getWait(self):
-		self.url = url(HOST, self.port, "api_getWait")
+		self.url = url(self.hostname, self.port, "api_getWait")
 		self.response = self.client.get(self.url)
 		if self.response.status_code == 200:
 			return False
 		return True
 
 	def getOutbox(self):
-		self.url = url(HOST, self.port, "api_getOutbox")
+		self.url = url(self.hostname, self.port, "api_getOutbox")
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
 	def getInbox(self):
-		self.url = url(HOST, self.port, "api_getInbox")
+		self.url = url(self.hostname, self.port, "api_getInbox")
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
 	def getFolders(self):
-		self.url = url(HOST, self.port, "api_getFolders")
+		self.url = url(self.hostname, self.port, "api_getFolders")
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
 	def getInFolder(self, folder_id):
-		self.url = url(HOST, self.port, "api_getInFolder")
+		self.url = url(self.hostname, self.port, "api_getInFolder")
 		self.post_data = dict(sessionid=self.sessionid, folder_id=folder_id, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 		return json.loads(self.response.content)
 
 	def getAllMessages(self):
-		self.url = url(HOST, self.port, "api_getAllMessages")
+		self.url = url(self.hostname, self.port, "api_getAllMessages")
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
 	def getReadedMessages(self):
-		self.url = url(HOST, self.port, "api_getReadedMessages")
+		self.url = url(self.hostname, self.port, "api_getReadedMessages")
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
 	def getUnreadedMessages(self):
-		self.url = url(HOST, self.port, "api_getUnreadedMessages")
+		self.url = url(self.hostname, self.port, "api_getUnreadedMessages")
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
@@ -147,27 +154,16 @@ if __name__ == '__main__':
 
 	hst_list = []
 
-	try:
-		client_0 = Client(PORT[0])
-		hst_list.append(client_0)
-	except:
-		print "[TEST] Host 0 is not online..."
-		sys.exit(1)
-	try:
-		client_1 = Client(PORT[1])
-		hst_list.append(client_1)
-	except:
-		print "[TEST] Host 1 is not online..."
-		sys.exit(1)
-	try:
-		client_2 = Client(PORT[2])
-		hst_list.append(client_2)
-	except:
-		print "[TEST] Host 2 is not online..."
-		sys.exit(1)
+	for host in ALL_HOSTS:
+		try:
+			client = Client(host['port'], host['hostname'])
+			hst_list.append(client)
+		except:
+			print "[TEST] Host %s:%d is not online..." %  (host['hostname'], int(host['port']))
+			sys.exit(1)
 
 	print "[TEST] Register user on one host."
-	client_0.register('test_user', '1111', '1111')
+	hst_list[0].register('test_user', '1111', '1111')
 
 	print "[TEST] Login user on each host.\n"
 	for host in hst_list:
@@ -326,7 +322,7 @@ if __name__ == '__main__':
 
 	start = time.time()
 	x = 0
-	while client_0.getWait() or client_1.getWait() or client_2.getWait():
+	while hst_list[0].getWait() or hst_list[1].getWait() or hst_list[2].getWait():
 		if x == 100:
 			print "[TEST] Waiting for hosts to converge.\n"
 			x = 0
@@ -338,26 +334,26 @@ if __name__ == '__main__':
 		print "[TEST] Wating for hosts to converge %.12f seconds." % (time.time() - start)
 		print "[TEST] Wating for hosts to converge %.12f seconds per operation.\n" % float((time.time() - start)/count)			
 
-	inbox_0 = set(client_0.getInbox())
-	outbox_0 = set(client_0.getOutbox())
-	folders_0 = set(client_0.getFolders())
-	all_0 = set(client_0.getAllMessages())
-	readed_0 = set(client_0.getReadedMessages())
-	unreaded_0 = set(client_0.getUnreadedMessages())
+	inbox_0 = set(hst_list[0].getInbox())
+	outbox_0 = set(hst_list[0].getOutbox())
+	folders_0 = set(hst_list[0].getFolders())
+	all_0 = set(hst_list[0].getAllMessages())
+	readed_0 = set(hst_list[0].getReadedMessages())
+	unreaded_0 = set(hst_list[0].getUnreadedMessages())
 
-	inbox_1 = set(client_1.getInbox())
-	outbox_1 = set(client_1.getOutbox())
-	folders_1 = set(client_1.getFolders())
-	all_1 = set(client_1.getAllMessages())
-	readed_1 = set(client_1.getReadedMessages())
-	unreaded_1 = set(client_1.getUnreadedMessages())
+	inbox_1 = set(hst_list[1].getInbox())
+	outbox_1 = set(hst_list[1].getOutbox())
+	folders_1 = set(hst_list[1].getFolders())
+	all_1 = set(hst_list[1].getAllMessages())
+	readed_1 = set(hst_list[1].getReadedMessages())
+	unreaded_1 = set(hst_list[1].getUnreadedMessages())
 
-	inbox_2 = set(client_2.getInbox())
-	outbox_2 = set(client_2.getOutbox())
-	folders_2 = set(client_2.getFolders())
-	all_2 = set(client_2.getAllMessages())
-	readed_2 = set(client_2.getReadedMessages())
-	unreaded_2 = set(client_2.getUnreadedMessages())
+	inbox_2 = set(hst_list[2].getInbox())
+	outbox_2 = set(hst_list[2].getOutbox())
+	folders_2 = set(hst_list[2].getFolders())
+	all_2 = set(hst_list[2].getAllMessages())
+	readed_2 = set(hst_list[2].getReadedMessages())
+	unreaded_2 = set(hst_list[2].getUnreadedMessages())
 
 	all_len = 0
 
@@ -374,9 +370,9 @@ if __name__ == '__main__':
 		print '[TEST] Passed folder check - got ' + str(len(folders_0)) + ' folders.'
 
 		for fol in folders_0:
-			in_fol_0 = set(client_0.getInFolder(fol))
-			in_fol_1 = set(client_1.getInFolder(fol))
-			in_fol_2 = set(client_1.getInFolder(fol))
+			in_fol_0 = set(hst_list[0].getInFolder(fol))
+			in_fol_1 = set(hst_list[1].getInFolder(fol))
+			in_fol_2 = set(hst_list[2].getInFolder(fol))
 			if in_fol_0 == in_fol_1 == in_fol_2:
 				all_len += len(in_fol_0)
 				print '\t[TEST] Passed subcheck - got ' + str(len(in_fol_0)) + ' messages in folder.'
@@ -394,6 +390,6 @@ if __name__ == '__main__':
 			print '[TEST] Passed unreaded check - got ' + str(len(unreaded_0)) + "/" + str(len(all_0)) + ' messages.'
 
 	print "\n[TEST] Logout user on each host.\n"
-	client_0.logout()
-	client_1.logout()
-	client_2.logout()
+	hst_list[0].logout()
+	hst_list[1].logout()
+	hst_list[2].logout()

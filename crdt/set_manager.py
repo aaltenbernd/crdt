@@ -13,8 +13,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from .models import *
 
-HOSTNAME = "http://127.0.0.1"
-
 class SetManager():
 	def __init__(self):
 		self.add_messages = set(AddMessage.objects.filter(folder_id = None))
@@ -101,10 +99,7 @@ class SetManager():
 			obj = Readed(message_id=data['uuid'], number=data['number'])
 
 			if self.mark[str(data['uuid'])][0] < data['number']+1:
-				self.mark[str(data['uuid'])][0] = data['number']+1
-
-			print self.mark[str(data['uuid'])][0]
-			print self.mark[str(data['uuid'])][2]			
+				self.mark[str(data['uuid'])][0] = data['number']+1			
 
 			return obj
 
@@ -119,8 +114,6 @@ class SetManager():
 			if self.mark[str(data['uuid'])][1] < data['number']+1:
 				self.mark[str(data['uuid'])][1] = data['number']+1
 
-			print self.mark[str(data['uuid'])][1]
-			print self.mark[str(data['uuid'])][3]
 
 			return obj
 
@@ -292,8 +285,6 @@ class SetManager():
 				message.delete()
 			elif message not in self.in_folder[str(message.folder_id)]:
 				message.delete()
-			#elif self.messageReaded(message.uuid):
-			#	Readed.objects.create(message_id=message.uuid, number=1)
 
 
 		print '[PERSIST] : finished in %s' % str((time.time() - start))

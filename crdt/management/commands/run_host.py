@@ -4,5 +4,15 @@ from django.core.management import call_command
 from django.conf import settings
 
 class Command(BaseCommand):
+	def add_arguments(self, parser):
+		parser.add_argument('--production',
+							action='store_true',
+							dest='ENV',
+							default=False,
+							help='Set environment to production.')
+
 	def handle(self, *args, **options):
-		call_command('runserver', '--noreload', str(settings.RUNNING_HOST['port']))
+		if options['ENV']:
+			call_command('runserver', '--noreload', "0.0.0.0:8000")
+		else:
+			call_command('runserver', '--noreload', str(settings.RUNNING_HOST['port']))
