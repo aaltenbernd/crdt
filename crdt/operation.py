@@ -5,13 +5,15 @@ from .models import *
 from django.conf import settings
 
 def addFolder(user_uuid, title):
+	start = time.time()
 	folder = dict(uuid=str(uuid.uuid4()), operation='add_folder', title=title, user_id=str(user_uuid))
 
 	settings.SET_MANAGER.add(folder, True)
 
-	return folder['uuid']
+	return time.time() - start
 
 def addMessage(user_uuid, text, author_id, reader_id):
+	start = time.time()
 	date = time.strftime("%b %d %Y %H:%M:%S")
 	inbox_message = dict(uuid=str(uuid.uuid4()), date=date, operation='add', text=text, author_id=str(author_id), reader_id=str(reader_id), host=settings.RUNNING_HOST['id'])
 	outbox_message = dict(uuid=str(uuid.uuid4()), date=date, operation='add_outbox', text=text, author_id=str(author_id), reader_id=str(reader_id), host=settings.RUNNING_HOST['id'])
@@ -19,31 +21,35 @@ def addMessage(user_uuid, text, author_id, reader_id):
 	settings.SET_MANAGER.add(inbox_message, True)
 	settings.SET_MANAGER.add(outbox_message, True)
 
-	return inbox_message['uuid']
+	return time.time() - start
 
 def deleteOutboxMessage(user_uuid, uuid):
+	start = time.time()
 	delete_message = dict(operation='delete', uuid=str(uuid))
 	settings.SET_MANAGER.add(delete_message, True)
 
-	return delete_message['uuid']
+	return time.time() - start
 
 def deleteMessage(user_uuid, uuid):
+	start = time.time()
 	delete_message = dict(operation='delete', uuid=str(uuid))
 	settings.SET_MANAGER.add(delete_message, True)
 
-	return delete_message['uuid']
+	return time.time() - start
 
 def deleteFolder(user_id, uuid):
+	start = time.time()
 	delete_folder = dict(operation='delete_folder', uuid=str(uuid))
 	settings.SET_MANAGER.add(delete_folder, True)
 
-	return delete_folder['uuid']
+	return time.time() - start
 
 def changeFolder(user_id, message_id, old_folder, new_folder):
+	start = time.time()
 	add_message = settings.SET_MANAGER.getMessage(message_id)
 
 	if old_folder == new_folder:
-		return message_id
+		return time.time() - start
 
 	if old_folder == 'Inbox' and new_folder != 'Inbox':
 		new_message = dict(uuid=str(add_message.uuid), operation='add_to_folder', folder_id=str(new_folder), text=add_message.text, host=add_message.host, date=add_message.date, author_id=str(add_message.author_id), reader_id=str(add_message.reader_id))
@@ -67,11 +73,12 @@ def changeFolder(user_id, message_id, old_folder, new_folder):
 				new_message = dict(uuid=str(uuid.uuid4()), operation='add_to_folder', folder_id=str(new_folder), need_add=True, text=add_message.text, host=add_message.host, date=add_message.date, author_id=str(add_message.author_id), reader_id=str(add_message.reader_id))
 				settings.SET_MANAGER.add(new_message, True)
 
-	return new_message['uuid']
+	return time.time() - start
 
 def mark_readed(user_id, message_id):
+	start = time.time()
 	if settings.SET_MANAGER.messageReaded(message_id) == True:
-		return message_id
+		return time.time() - start
 
 	while settings.FLAT_MANAGER.getFlat():
 		time.sleep(1)
@@ -79,11 +86,12 @@ def mark_readed(user_id, message_id):
 	new_marker = dict(uuid=str(message_id), operation='mark_readed', number=settings.SET_MANAGER.mark[str(message_id)][0])
 	settings.SET_MANAGER.add(new_marker, True)
 
-	return new_marker['uuid']
+	return time.time() - start
 
 def mark_unreaded(user_id, message_id):
+	start = time.time()
 	if settings.SET_MANAGER.messageReaded(message_id) == False:
-		return message_id
+		return time.time() - start
 
 	while settings.FLAT_MANAGER.getFlat():
 		time.sleep(1)
@@ -91,7 +99,7 @@ def mark_unreaded(user_id, message_id):
 	new_marker = dict(uuid=str(message_id), operation='mark_un_readed', number=settings.SET_MANAGER.mark[str(message_id)][1])
 	settings.SET_MANAGER.add(new_marker, True)
 
-	return new_marker['uuid']
+	return time.time() - start
 
 def getAllOutboxMessages(user_id, mark):
 	outbox = settings.SET_MANAGER.getOutbox()

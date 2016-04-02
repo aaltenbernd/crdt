@@ -201,8 +201,6 @@ if __name__ == '__main__':
 				host.login('test_user', '1111')
 				break
 			except:
-				print "Unexpected error:", sys.exc_info()[0]
-   				raise
 				time.sleep(1)
 				pass
 
@@ -305,14 +303,15 @@ if __name__ == '__main__':
 			op_start = time.time()
 			host.mark_unreaded(msg)
 
-		op_end = time.time() - op_start
+		if host.response.status_code != 200:
+			print host.response.status_code
+			continue
+
+		#op_end = time.time() - op_start
+		op_end = json.loads(host.response.content)['time']
 		time_result += op_end
 		print '[TEST] %.4f seconds : %s to %d' % (op_end, op[operation], int(host.port))
 		count_result[operation] += 1
-
-		if host.response.status_code != 200:
-			print host.response.status_code
-			#sys.exit()
 
 		if i >= 10 and i % (amount_op/(amount_op/10)) == 0:
 			percent = int(float(i) / float(amount_op) * 100)

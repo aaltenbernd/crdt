@@ -63,12 +63,12 @@ def api_addMessage(request):
 		if reader is None:
 			return HttpResponseBadRequest()
 
-		message = addMessage(request.user.userprofile.uuid, text, author_uuid, reader_uuid)
+		time = addMessage(request.user.userprofile.uuid, text, author_uuid, reader_uuid)
 
-		if message is None:
+		if time is None:
 			return HttpResponseBadRequest()
 		else:			
-			return HttpResponse(status=200)
+			return JsonResponse(dict(time=time))
 
 	return HttpResponseNotFound()
 
@@ -79,12 +79,12 @@ def api_deleteMessage(request):
 	if request.method == 'POST':
 		message_id = request.POST.get('message_id')
 
-		delete_message = deleteMessage(request.user.userprofile.uuid, message_id)
+		time = deleteMessage(request.user.userprofile.uuid, message_id)
 
-		if delete_message is None:
+		if time is None:
 			return HttpResponseBadRequest()
 		else:
-			return HttpResponse(status=200)
+			return JsonResponse(dict(time=time))
 
 	return HttpResponseNotFound()
 
@@ -96,12 +96,12 @@ def api_addFolder(request):
 
 		title = request.POST.get('title')
 
-		folder = addFolder(request.user.userprofile.uuid, title)
+		time = addFolder(request.user.userprofile.uuid, title)
 
 		if folder is None:
 			return HttpResponseBadRequest()
-		
-		return HttpResponse(status=200)
+		else:
+			return JsonResponse(dict(time=time))
 
 	return HttpResponseNotFound()
 
@@ -112,12 +112,12 @@ def api_deleteFolder(request):
 	if request.method == "POST":
 		folder_id = request.POST.get('folder_id')
 
-		delete_folder = deleteFolder(request.user.userprofile.uuid, folder_id)
+		time = deleteFolder(request.user.userprofile.uuid, folder_id)
 
-		if delete_folder is None:
+		if time is None:
 			return HttpResponseBadRequest()
-		
-		return HttpResponse(status=200)
+		else:
+			return JsonResponse(dict(time=time))
 
 	return HttpResponseNotFound()
 
@@ -130,12 +130,12 @@ def api_changeFolder(request):
 		folder_choice = request.POST.get('folder_choice')
 		old_folder = request.POST.get('old_folder')
 
-		new_message = changeFolder(request.user.userprofile.uuid, message_id, old_folder, folder_choice)
+		time = changeFolder(request.user.userprofile.uuid, message_id, old_folder, folder_choice)
 
-		if new_message is None:
+		if time is None:
 			return HttpResponseBadRequest()
-		
-		return HttpResponse(status=200)
+		else:
+			return JsonResponse(dict(time=time))
 
 	return HttpResponseNotFound()
 
@@ -146,9 +146,9 @@ def api_mark_readed(request):
 	if request.method == "POST":
 		message_id = request.POST.get('message_id')
 
-		ret = mark_readed(request.user.userprofile.uuid, message_id)
+		time = mark_readed(request.user.userprofile.uuid, message_id)
 
-		return HttpResponse(status=200)
+		return JsonResponse(dict(time=time))
 
 	return HttpResponseNotFound()
 
@@ -159,9 +159,9 @@ def api_mark_unreaded(request):
 	if request.method == "POST":
 		message_id = request.POST.get('message_id')
 
-		ret = mark_unreaded(request.user.userprofile.uuid, message_id)
+		time = mark_unreaded(request.user.userprofile.uuid, message_id)
 
-		return HttpResponse(status=200)
+		return JsonResponse(dict(time=time))
 
 	return HttpResponseNotFound()
 
