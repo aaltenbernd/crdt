@@ -147,6 +147,19 @@ class Client():
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
+def getState(host):
+	state = dict()
+	state['inbox'] = host.getInbox()
+	state['outbox'] = host.getOutbox()
+	state['folders'] = host.getFolders()
+	state['all'] = host.getAllMessages()
+	state['readed'] = host.getReadedMessages()
+	state['unreaded'] = host.getUnreadedMessages()
+	for fol in state['folders']:
+		state[fol] = host.getInFolder(fol)
+
+	return state
+
 
 if __name__ == '__main__':
 	if len(sys.argv) != 2 and len(sys.argv) != 3 and len(sys.argv) != 4:
@@ -198,18 +211,19 @@ if __name__ == '__main__':
 
 	op = ['add', 'add_folder', 'delete', 'delete_folder', 'change_folder', 'mark_readed', 'mark_unreaded']
 
-	del_msg_list = host.getAllMessages()
-	del_msg_list.extend(host.getOutbox())
-
 	i = 0
 	while i < amount_op:
-		host = random.choice(hst_list)		
+		host = random.choice(hst_list)
+
+		if i % 500 == 0:
+			print "[TEST] Get state...\n"
+			state = getState(host)
 
 		try:
 			operation = int(sys.argv[2])
 		except:
 			#data['number']+1
-			operation = random.choice([0,1,2,3,4,5,6])
+			operation = random.choice([0,0,0,0,0,0,1,1,2,2,3,4,4,4,4,4,4,5,5,5,5,5,5,6,6])
 
 		# addMessage
 		if operation == 0:
@@ -218,22 +232,12 @@ if __name__ == '__main__':
 
 		# addFolder
 		if operation == 1:
-			fol_list = host.getFolders()
-
-			if fol_list:
-				if len(fol_list) >= 5:
-					continue
-
 			op_start = time.time()
 			host.addFolder(i)
 			
 		# deleteMessage
 		if operation == 2:
-			if i % 500 == 0:
-				del_msg_list = host.getAllMessages()
-				del_msg_list.extend(host.getOutbox())
-
-			msg_list = del_msg_list
+			msg_list = state['all']
 
 			if not msg_list:
 				continue
@@ -244,13 +248,11 @@ if __name__ == '__main__':
 
 		# deleteFolder
 		if operation == 3:
-			fol_list = host.getFolders()
+			fol_list = state['folders']
 
 			if not fol_list:
 				continue
-			else:
-				if len(fol_list) <= 3:
-					continue 
+
 			fol = random.choice(fol_list)
 
 			op_start = time.time()
@@ -258,7 +260,7 @@ if __name__ == '__main__':
 
 		# changeFolder
 		if operation == 4:
-			fol_list = host.getFolders()
+			fol_list = list(state['folders'])
 
 			if not fol_list:
 				continue
@@ -269,9 +271,9 @@ if __name__ == '__main__':
 			new_fol = random.choice(fol_list)
 
 			if old_fol == 'Inbox':
-				msg_list = host.getInbox()
+				msg_list = state['inbox']
 			else:
-				msg_list = host.getInFolder(old_fol)
+				msg_list = state[old_fol]
 
 			if not msg_list:
 				continue
@@ -283,7 +285,7 @@ if __name__ == '__main__':
 
 		# mark readed
 		if operation == 5:
-			msg_list = host.getUnreadedMessages()
+			msg_list = state['unreaded']
 
 			if not msg_list:
 				continue
@@ -294,7 +296,7 @@ if __name__ == '__main__':
 
 		# mark readed
 		if operation == 6:
-			msg_list = host.getReadedMessages()
+			msg_list = state['readed']
 
 			if not msg_list:
 				continue
@@ -310,7 +312,7 @@ if __name__ == '__main__':
 
 		if host.response.status_code != 200:
 			print host.response.status_code
-			sys.exit()
+			#sys.exit()
 
 		if i >= 10 and i % (amount_op/(amount_op/10)) == 0:
 			percent = int(float(i) / float(amount_op) * 100)

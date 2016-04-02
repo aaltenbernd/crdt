@@ -189,8 +189,6 @@ class SetManager():
 		return obj
 
 	def messageReaded(self, uuid):
-		print self.mark[str(uuid)][2].difference(self.mark[str(uuid)][3])
-		print self.mark[str(uuid)][3].difference(self.mark[str(uuid)][2])
 		len_r = len(self.mark[str(uuid)][2])
 		len_u = len(self.mark[str(uuid)][3])
 		return (len_r - len_u) > 0
