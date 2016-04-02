@@ -98,7 +98,7 @@ def api_addFolder(request):
 
 		time = addFolder(request.user.userprofile.uuid, title)
 
-		if folder is None:
+		if time is None:
 			return HttpResponseBadRequest()
 		else:
 			return JsonResponse(dict(time=time))
