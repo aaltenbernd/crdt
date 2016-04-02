@@ -215,7 +215,7 @@ if __name__ == '__main__':
 	while i < amount_op:
 		host = random.choice(hst_list)
 
-		if i % 500 == 0:
+		if i % 100 == 0:
 			print "[TEST] Get state...\n"
 			state = getState(host)
 
