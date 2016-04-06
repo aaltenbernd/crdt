@@ -213,14 +213,12 @@ if __name__ == '__main__':
 	while i < amount_op:
 		host = random.choice(hst_list)
 
-		if i % 500 == 0:
-			#print "[TEST] Get state...\n"
+		if i % 100 == 0:
 			state = getState(host)
 
 		try:
 			operation = int(sys.argv[2])
 		except:
-			#data['number']+1
 			operation = random.choice([
 							0,0,0,0,0,0,0,0,0,0,
 							1,
@@ -395,9 +393,9 @@ if __name__ == '__main__':
 		if set(state_0['readed']) == set(state_1['readed']) == set(state_2['readed']):
 			print '[TEST] Passed readed check - got ' + str(len(state_0['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
 		else:
-			print '[TEST] Passed readed check - got ' + str(len(state_0['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
-			print '[TEST] Passed readed check - got ' + str(len(state_1['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
-			print '[TEST] Passed readed check - got ' + str(len(state_2['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_0['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_1['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_2['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
 
 		if set(state_0['unreaded']) == set(state_1['unreaded']) == set(state_2['unreaded']):
 			print '[TEST] Passed unreaded check - got ' + str(len(state_0['unreaded'])) + "/" + str(len(state_0['all'])) + ' messages.'

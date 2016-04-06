@@ -302,17 +302,17 @@ class SetManager():
 	def persist(self):
 		time.sleep(2)
 		while(True):
-			if self.queue.empty():
-				if self.do_flat:
-					self.persist_flat()
-					self.do_flat = False
-				else:
+			if self.do_flat:
+				self.persist_flat()
+				self.do_flat = False
+			else:
+				if self.queue.empty():
 					print '[PERSIST] : empty queue'
 					time.sleep(1)
-			else:
-				while self.queue.empty() == False:
-					data = self.queue.get()
-					data.save()
+				else:
+					while self.queue.empty() == False:
+						data = self.queue.get()
+						data.save()
 
 	def write_state(self, title):
 		file_name = 'flat_%s.txt' % str(settings.RUNNING_HOST['id'])
@@ -360,6 +360,8 @@ class SetManager():
 			self.folders_dict.pop(str(folder.uuid), None)
 			for message in self.in_folder.pop(str(folder.uuid), None):
 				self.add_messages.discard(message)
+				self.messages_dict.pop(str(message.uuid), None)
+				self.mark.pop(str(message.uuid), None)
 
 		# flat marker
 		for message in set(self.add_messages):
@@ -524,7 +526,7 @@ class FlatManager():
 		while True:
 			try:
 				if self.queue.empty():
-					if settings.SET_MANAGER.getOpCount() >= 2500 and not self.flat:
+					if settings.SET_MANAGER.getOpCount() >= 500 and not self.flat:
 						self.prepare()
 					else:
 						time.sleep(1)
