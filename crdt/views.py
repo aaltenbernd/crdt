@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
 from .forms import *
 from .operation import *
@@ -252,10 +253,13 @@ def receive(request):
 
                 settings.FLAT_MANAGER.queue.put(data)
             elif data['operation'] == 'add_user':
-                user = User.objects.create_user(username=data['username'], password=data['password'])
-                profile = UserProfile.objects.create(user=user, uuid=data['uuid'], password=data['password'])
-                user.userprofile = profile
-                user.save()
+                try:
+                    user = UserProfile.objects.get(uuid=uuid.UUID(data['uuid']))
+                except ObjectDoesNotExist:
+                    user = User.objects.create_user(username=data['username'], password=data['password'])
+                    profile = UserProfile.objects.create(user=user, uuid=data['uuid'], password=data['password'])
+                    user.userprofile = profile
+                    user.save()
             else:
                 settings.SET_MANAGER.add(data, False)
 

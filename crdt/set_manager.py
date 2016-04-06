@@ -46,14 +46,20 @@ class SetManager():
 				print str(message.uuid) + " in " + str(message.folder_id)
 
 		for mark in Readed.objects.all():
-			if mark.number >= self.mark[str(mark.message_id)][0]:
-				self.mark[str(mark.message_id)][0] = mark.number + 1
-			self.mark[str(mark.message_id)][2].add(mark.number)
+			try:
+				if mark.number >= self.mark[str(mark.message_id)][0]:
+					self.mark[str(mark.message_id)][0] = mark.number + 1
+				self.mark[str(mark.message_id)][2].add(mark.number)
+			except:
+				pass
 
 		for mark in Unreaded.objects.all():
-			if mark.number >= self.mark[str(mark.message_id)][1]:
-				self.mark[str(mark.message_id)][1] = mark.number + 1
-			self.mark[str(mark.message_id)][3].add(mark.number)
+			try:
+				if mark.number >= self.mark[str(mark.message_id)][1]:
+					self.mark[str(mark.message_id)][1] = mark.number + 1
+				self.mark[str(mark.message_id)][3].add(mark.number)
+			except:
+				pass
 
 		self.op_count = 0
 		self.do_flat = False
@@ -113,7 +119,6 @@ class SetManager():
 
 			if self.mark[str(data['uuid'])][1] < data['number']+1:
 				self.mark[str(data['uuid'])][1] = data['number']+1
-
 
 			return obj
 
@@ -253,9 +258,6 @@ class SetManager():
 		print '[PERSIST] : start'
 		start = time.time()
 
-		Readed.objects.all().delete()
-		Unreaded.objects.all().delete()
-
 		for message in OutboxMessage.objects.all():
 			if message not in self.outbox_messages:
 				message.delete()
@@ -269,14 +271,24 @@ class SetManager():
 				folder.delete()
 
 		for folder in DeleteFolder.objects.all():
-			if folder not in self.add_folders:
+			if folder not in self.delete_folders:
 				folder.delete()
 
 		for message in AddMessage.objects.filter(folder_id=None):
 			if message not in self.add_messages:
 				message.delete()
-			elif self.messageReaded(message.uuid):
-				Readed.objects.create(message_id=message.uuid, number=self.mark[str(message.uuid)][0]-1)
+
+		for readed in Readed.objects.all():
+			if not self.mark.get(str(readed.message_id), None):
+				readed.delete()
+			elif readed.number not in self.mark[str(readed.message_id)][2]:
+				readed.delete()
+
+		for unreaded in Unreaded.objects.all():
+			if not self.mark.get(str(unreaded.message_id), None):
+				unreaded.delete()
+			elif unreaded.number not in self.mark[str(unreaded.message_id)][2]:
+				unreaded.delete()
 
 		for message in AddMessage.objects.all().exclude(folder_id=None):
 			if not self.folders_dict.get(str(message.folder_id), None):
@@ -295,7 +307,7 @@ class SetManager():
 					self.persist_flat()
 					self.do_flat = False
 				else:
-					#print '[PERSIST] : sleeping...'
+					print '[PERSIST] : empty queue'
 					time.sleep(1)
 			else:
 				while self.queue.empty() == False:
@@ -330,19 +342,11 @@ class SetManager():
 				if hash(other_folder) > hash(folder):
 					self.in_folder[str(folder.uuid)] = self.in_folder[str(folder.uuid)].difference(self.in_folder[str(other_folder.uuid)])
 
-			for message in self.in_folder[str(folder.uuid)]:
-				if self.messageReaded(message.uuid):
-					self.mark[str(message.uuid)][2] = set()
-					self.mark[str(message.uuid)][2].add(self.mark[str(message.uuid)][0]-1)
-				else:
-					self.mark[str(message.uuid)][2] = set()
-				self.mark[str(message.uuid)][3] = set()
-
 		# flat add_messages
 		for message in self.add_messages.intersection(self.delete_messages):
 			self.add_messages.remove(message)
 			self.messages_dict.pop(str(message.uuid), None)
-			mark_set = self.mark.pop(str(message.uuid), None)
+			self.mark.pop(str(message.uuid), None)
 
 		# flat outbox_messages
 		for message in self.outbox_messages.intersection(self.delete_messages):

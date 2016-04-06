@@ -6,14 +6,14 @@ I. Einleitung
 	2. Ziel
 	3. Aufbau
 II. Theorie
-	1. Nachrichtensystem
-	2. Replikation
-	3. Pessimistische Replikation
-	4. Optimistische Replikation
-	5. Konsistenz
-	6. CRDT (Schwerpunkt)
-	7. Verteilter Zähler
-	8. Commit Protokoll 2PC/3PC
+	1. Nachrichtensystem 0,5
+	2. Replikation 1
+	3. Pessimistische Replikation 1
+	4. Optimistische Replikation 1
+	5. Konsistenz 1
+	6. CRDT (Schwerpunkt) 3-4
+	7. Verteilter Zähler 0,5
+	8. Commit Protokoll 2PC/3PC 1-2
 III. Konzept
 	1. Nachrichten
 	2. Ordner

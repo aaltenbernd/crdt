@@ -36,7 +36,10 @@ def api_login(request):
 
 		user = authenticate(username=username, password=password)
 
-		login(request,user)
+		try:
+			login(request,user)
+		except:
+			return HttpResponseForbidden()
 
 		if user.is_authenticated():
 			return HttpResponse(status=200)

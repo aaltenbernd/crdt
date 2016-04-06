@@ -23,9 +23,6 @@ else:
 	                {'id' : 2, 'port' : 8002, 'hostname' : 'http://127.0.0.1'},
 	            ]
 
-
-
-
 def url(host, port, operation):
 	return host + ":" + str(port) + "/" + operation
 
@@ -199,7 +196,10 @@ if __name__ == '__main__':
 		while True:
 			try:
 				host.login('test_user', '1111')
-				break
+				if host.response.status_code == 200:
+					break
+				else:
+					pass
 			except:
 				time.sleep(1)
 				pass
@@ -213,8 +213,8 @@ if __name__ == '__main__':
 	while i < amount_op:
 		host = random.choice(hst_list)
 
-		if i % 100 == 0:
-			print "[TEST] Get state...\n"
+		if i % 500 == 0:
+			#print "[TEST] Get state...\n"
 			state = getState(host)
 
 		try:
@@ -223,12 +223,13 @@ if __name__ == '__main__':
 			#data['number']+1
 			operation = random.choice([
 							0,0,0,0,0,0,0,0,0,0,
-							#1,1,
+							1,
 							2,2,2,2,2,
-							#3,
+							3,
 							4,4,4,4,4,4,4,4,4,4,
 							5,5,5,5,5,5,5,5,5,5,
 							6,6,6,6,6])
+			#operation = random.choice([5,6])
 
 		# addMessage
 		if operation == 0:
@@ -320,7 +321,7 @@ if __name__ == '__main__':
 		print '[TEST] %.4f seconds : %s to %d' % (op_end, op[operation], int(host.port))
 		count_result[operation] += 1
 
-		if i >= 10 and i % (amount_op/(amount_op/10)) == 0:
+		if i >= 100 and i % (amount_op/(amount_op/100)) == 0:
 			percent = int(float(i) / float(amount_op) * 100)
 			print '\n[TEST] ' + str(percent) + ' %\tcompleted\n'
 
@@ -360,60 +361,46 @@ if __name__ == '__main__':
 		print "[TEST] Wating for hosts to converge %.12f seconds." % (time.time() - start)
 		print "[TEST] Wating for hosts to converge %.12f seconds per operation.\n" % float((time.time() - start)/count)			
 
-	inbox_0 = set(hst_list[0].getInbox())
-	outbox_0 = set(hst_list[0].getOutbox())
-	folders_0 = set(hst_list[0].getFolders())
-	all_0 = set(hst_list[0].getAllMessages())
-	readed_0 = set(hst_list[0].getReadedMessages())
-	unreaded_0 = set(hst_list[0].getUnreadedMessages())
+	# Check states
 
-	inbox_1 = set(hst_list[1].getInbox())
-	outbox_1 = set(hst_list[1].getOutbox())
-	folders_1 = set(hst_list[1].getFolders())
-	all_1 = set(hst_list[1].getAllMessages())
-	readed_1 = set(hst_list[1].getReadedMessages())
-	unreaded_1 = set(hst_list[1].getUnreadedMessages())
-
-	inbox_2 = set(hst_list[2].getInbox())
-	outbox_2 = set(hst_list[2].getOutbox())
-	folders_2 = set(hst_list[2].getFolders())
-	all_2 = set(hst_list[2].getAllMessages())
-	readed_2 = set(hst_list[2].getReadedMessages())
-	unreaded_2 = set(hst_list[2].getUnreadedMessages())
+	state_0 = getState(hst_list[0])
+	state_1 = getState(hst_list[1])
+	state_2 = getState(hst_list[2])
 
 	all_len = 0
 
-	if inbox_0 == inbox_1 == inbox_2:
-		all_len += len(inbox_0)
-		print '[TEST] Passed inbox check - got ' + str(len(inbox_0)) + ' messages.'
+	if set(state_0['inbox']) == set(state_1['inbox']) == set(state_2['inbox']):
+		all_len += len(state_0['inbox'])
+		print '[TEST] Passed inbox check - got ' + str(len(state_0['inbox'])) + ' messages.'
 
-	if outbox_0 == outbox_1 == outbox_2:
-		all_len += len(outbox_0)
-		print '[TEST] Passed outbox check - got ' + str(len(outbox_0)) + ' messages.'
+	if set(state_0['outbox']) == set(state_1['outbox']) == set(state_2['outbox']):
+		all_len += len(state_0['outbox'])
+		print '[TEST] Passed outbox check - got ' + str(len(state_0['outbox'])) + ' messages.'
 
-	if folders_0 == folders_1 == folders_2:
-		all_len += len(folders_0)
-		print '[TEST] Passed folder check - got ' + str(len(folders_0)) + ' folders.'
+	if set(state_0['folders']) == set(state_1['folders']) == set(state_2['folders']):
+		all_len += len(state_0['folders'])
+		print '[TEST] Passed folder check - got ' + str(len(state_0['folders'])) + ' folders.'
 
-		for fol in folders_0:
-			in_fol_0 = set(hst_list[0].getInFolder(fol))
-			in_fol_1 = set(hst_list[1].getInFolder(fol))
-			in_fol_2 = set(hst_list[2].getInFolder(fol))
-			if in_fol_0 == in_fol_1 == in_fol_2:
-				all_len += len(in_fol_0)
-				print '\t[TEST] Passed subcheck - got ' + str(len(in_fol_0)) + ' messages in folder.'
+		for fol in state_0['folders']:
+			if set(state_0[fol]) == set(state_1[fol]) == set(state_2[fol]):
+				all_len += len(state_0[fol])
+				print '\t[TEST] Passed subcheck - got ' + str(len(state_0[fol])) + ' messages in folder.'
 			else:
 				print '\t[TEST] Not Passed subcheck!'
 
 	print '[TEST] makes ' + str(all_len) + ' messages/folders.\n'
 
-	if all_0 == all_1 == all_2:
-		print '[TEST] Passed check - got ' + str(len(all_0)) + ' messages.'
-		if readed_0 == readed_1 == readed_2:
-			print '[TEST] Passed readed check - got ' + str(len(readed_0)) + "/" + str(len(all_0)) + ' messages.'
+	if set(state_0['all']) == set(state_1['all']) == set(state_2['all']):
+		print '[TEST] Passed check - got ' + str(len(state_0['all'])) + ' messages.'
+		if set(state_0['readed']) == set(state_1['readed']) == set(state_2['readed']):
+			print '[TEST] Passed readed check - got ' + str(len(state_0['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
+		else:
+			print '[TEST] Passed readed check - got ' + str(len(state_0['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Passed readed check - got ' + str(len(state_1['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Passed readed check - got ' + str(len(state_2['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
 
-		if unreaded_0 == unreaded_1 == unreaded_2:
-			print '[TEST] Passed unreaded check - got ' + str(len(unreaded_0)) + "/" + str(len(all_0)) + ' messages.'
+		if set(state_0['unreaded']) == set(state_1['unreaded']) == set(state_2['unreaded']):
+			print '[TEST] Passed unreaded check - got ' + str(len(state_0['unreaded'])) + "/" + str(len(state_0['all'])) + ' messages.'
 
 	print "\n[TEST] Logout user on each host.\n"
 	hst_list[0].logout()

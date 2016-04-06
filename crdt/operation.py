@@ -46,7 +46,10 @@ def deleteFolder(user_id, uuid):
 
 def changeFolder(user_id, message_id, old_folder, new_folder):
 	start = time.time()
-	add_message = settings.SET_MANAGER.getMessage(message_id)
+	try:
+		add_message = settings.SET_MANAGER.getMessage(message_id)
+	except:
+		return time.time() - start
 
 	if old_folder == new_folder:
 		return time.time() - start
@@ -61,8 +64,11 @@ def changeFolder(user_id, message_id, old_folder, new_folder):
 			new_message = dict(uuid=str(uuid.uuid4()), operation='add', text=add_message.text, host=add_message.host, date=add_message.date, author_id=str(add_message.author_id), reader_id=str(add_message.reader_id))
 			settings.SET_MANAGER.add(new_message, True)
 		else:
-			old_f = settings.SET_MANAGER.getFolder(old_folder)
-			new_f = settings.SET_MANAGER.getFolder(new_folder)
+			try:
+				old_f = settings.SET_MANAGER.getFolder(old_folder)
+				new_f = settings.SET_MANAGER.getFolder(new_folder)
+			except:
+				return time.time() - start
 
 			if hash(new_f) > hash(old_f):
 				new_message = dict(uuid=str(add_message.uuid), operation='add_to_folder', folder_id=str(new_folder), text=add_message.text, host=add_message.host, date=add_message.date, author_id=str(add_message.author_id), reader_id=str(add_message.reader_id))
@@ -77,7 +83,10 @@ def changeFolder(user_id, message_id, old_folder, new_folder):
 
 def mark_readed(user_id, message_id):
 	start = time.time()
-	if settings.SET_MANAGER.messageReaded(message_id) == True:
+	try:
+		if settings.SET_MANAGER.messageReaded(message_id) == True:
+			return time.time() - start
+	except:
 		return time.time() - start
 
 	while settings.FLAT_MANAGER.getFlat():
@@ -90,7 +99,10 @@ def mark_readed(user_id, message_id):
 
 def mark_unreaded(user_id, message_id):
 	start = time.time()
-	if settings.SET_MANAGER.messageReaded(message_id) == False:
+	try:
+		if settings.SET_MANAGER.messageReaded(message_id) == False:
+			return time.time() - start
+	except:
 		return time.time() - start
 
 	while settings.FLAT_MANAGER.getFlat():

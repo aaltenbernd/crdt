@@ -16,22 +16,22 @@ class Unreaded(models.Model):
 	message_id = models.UUIDField(editable=True, default=None, null=True)
 	number = models.IntegerField()
 
-class Message(models.Model):
+class OutboxMessage(models.Model):
 	uuid = models.UUIDField(editable=False)
-
-	def __eq__(self, other):
-		return self.uuid == other.uuid
-	def __hash__(self):
-		return int(self.uuid)
-	def __str__(self):
-		return str(self.uuid)
-
-class OutboxMessage(Message):
 	date = models.CharField(max_length=40)
 	text = models.CharField(max_length=40)
 	author_id = models.UUIDField(editable=True, default=None, null=True)
 	reader_id = models.UUIDField(editable=True, default=None, null=True)
 	host = models.IntegerField()
+
+	def __eq__(self, other):
+		return self.uuid == other.uuid
+
+	def __hash__(self):
+		return int(self.uuid)
+
+	def __str__(self):
+		return str(self.uuid)
 
 	def to_dict(self):
 		return dict(
@@ -44,13 +44,23 @@ class OutboxMessage(Message):
 			operation="add_outbox",
 		)
 
-class AddMessage(Message):
+class AddMessage(models.Model):
+	uuid = models.UUIDField(editable=False)
 	date = models.CharField(max_length=40)
 	text = models.CharField(max_length=40)
 	author_id = models.UUIDField(editable=True, default=None, null=True)
 	reader_id = models.UUIDField(editable=True, default=None, null=True)
 	host = models.IntegerField()
 	folder_id = models.UUIDField(editable=True, default=None, null=True)
+
+	def __eq__(self, other):
+		return self.uuid == other.uuid
+
+	def __hash__(self):
+		return int(self.uuid)
+
+	def __str__(self):
+		return str(self.uuid)
 
 	def to_dict(self):
 		return dict(
@@ -63,26 +73,37 @@ class AddMessage(Message):
 			operation="add",
 		)
 
-class DeleteMessage(Message):
+class DeleteMessage(models.Model):
+	uuid = models.UUIDField(editable=False)
+
+	def __eq__(self, other):
+		return self.uuid == other.uuid
+
+	def __hash__(self):
+		return int(self.uuid)
+
+	def __str__(self):
+		return str(self.uuid)
+
 	def to_dict(self):
 		return dict(
 			uuid=str(self.uuid),
 			operation="delete"
 		)
 
-class Folder(models.Model):
+class AddFolder(models.Model):
 	uuid = models.UUIDField(editable=False)
+	title = models.CharField(max_length=40)
+	user_id = models.UUIDField(editable=True, default=None, null=True)
 
 	def __eq__(self, other):
 		return self.uuid == other.uuid
+
 	def __hash__(self):
 		return int(self.uuid)
+		
 	def __str__(self):
 		return str(self.uuid)
-
-class AddFolder(Folder):
-	title = models.CharField(max_length=40)
-	user_id = models.UUIDField(editable=True, default=None, null=True)
 
 	def to_dict(self):
 		return dict(
@@ -92,7 +113,18 @@ class AddFolder(Folder):
 			operation="add_folder"
 		)
 
-class DeleteFolder(Folder):
+class DeleteFolder(models.Model):
+	uuid = models.UUIDField(editable=False)
+	
+	def __eq__(self, other):
+		return self.uuid == other.uuid
+
+	def __hash__(self):
+		return int(self.uuid)
+		
+	def __str__(self):
+		return str(self.uuid)
+
 	def to_dict(self):
 		return dict(
 			uuid=str(self.uuid),

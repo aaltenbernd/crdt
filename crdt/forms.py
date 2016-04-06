@@ -26,7 +26,6 @@ class PaginationForm(forms.Form):
 
   		return pagination
 
-
 class ChangeFolderForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		self.user_id = kwargs.pop('user_id')
