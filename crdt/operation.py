@@ -16,10 +16,10 @@ def addMessage(user_uuid, text, author_id, reader_id):
 	start = time.time()
 	date = time.strftime("%b %d %Y %H:%M:%S")
 	inbox_message = dict(uuid=str(uuid.uuid4()), date=date, operation='add', text=text, author_id=str(author_id), reader_id=str(reader_id), host=settings.RUNNING_HOST['id'])
-	outbox_message = dict(uuid=str(uuid.uuid4()), date=date, operation='add_outbox', text=text, author_id=str(author_id), reader_id=str(reader_id), host=settings.RUNNING_HOST['id'])
+	#outbox_message = dict(uuid=str(uuid.uuid4()), date=date, operation='add_outbox', text=text, author_id=str(author_id), reader_id=str(reader_id), host=settings.RUNNING_HOST['id'])
 
 	settings.SET_MANAGER.add(inbox_message, True)
-	settings.SET_MANAGER.add(outbox_message, True)
+	#settings.SET_MANAGER.add(outbox_message, True)
 
 	return time.time() - start
 
@@ -86,14 +86,14 @@ def mark_readed(user_id, message_id):
 	try:
 		if settings.SET_MANAGER.messageReaded(message_id) == True:
 			return time.time() - start
+
+		while settings.FLAT_MANAGER.getFlat():
+			time.sleep(1)
+
+		new_marker = dict(uuid=str(message_id), operation='mark_readed', number=settings.SET_MANAGER.mark[str(message_id)][0])
+		settings.SET_MANAGER.add(new_marker, True)
 	except:
 		return time.time() - start
-
-	while settings.FLAT_MANAGER.getFlat():
-		time.sleep(1)
-
-	new_marker = dict(uuid=str(message_id), operation='mark_readed', number=settings.SET_MANAGER.mark[str(message_id)][0])
-	settings.SET_MANAGER.add(new_marker, True)
 
 	return time.time() - start
 
@@ -108,8 +108,11 @@ def mark_unreaded(user_id, message_id):
 	while settings.FLAT_MANAGER.getFlat():
 		time.sleep(1)
 
-	new_marker = dict(uuid=str(message_id), operation='mark_un_readed', number=settings.SET_MANAGER.mark[str(message_id)][1])
-	settings.SET_MANAGER.add(new_marker, True)
+	try:
+		new_marker = dict(uuid=str(message_id), operation='mark_un_readed', number=settings.SET_MANAGER.mark[str(message_id)][1])
+		settings.SET_MANAGER.add(new_marker, True)
+	except:
+		return time.time() - start
 
 	return time.time() - start
 

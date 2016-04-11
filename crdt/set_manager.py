@@ -40,10 +40,8 @@ class SetManager():
 		for message in AddMessage.objects.all().exclude(folder_id = None):
 			try:				
 				self.in_folder[str(message.folder_id)].add(message)
-				#self.messages_dict[str(message.uuid)] = message
-				#self.mark[str(message.uuid)] = [0, 0, set(), set()]
 			except:
-				print str(message.uuid) + " in " + str(message.folder_id)
+				pass
 
 		for mark in Readed.objects.all():
 			try:
@@ -185,7 +183,6 @@ class SetManager():
 			if not self.mark.get(str(data['uuid']), None):
 				self.mark[str(data['uuid'])] = [0, 0, set(), set()]
 
-
 			if not self.in_folder.get(folder, None):
 				self.in_folder[folder] = set()	
 			
@@ -194,9 +191,12 @@ class SetManager():
 		return obj
 
 	def messageReaded(self, uuid):
-		len_r = len(self.mark[str(uuid)][2])
-		len_u = len(self.mark[str(uuid)][3])
-		return (len_r - len_u) > 0
+		try:
+			len_r = len(self.mark[str(uuid)][2])
+			len_u = len(self.mark[str(uuid)][3])
+			return (len_r - len_u) > 0
+		except:
+			return False		
 
 	def getOpCount(self):
 		return self.op_count
@@ -226,7 +226,11 @@ class SetManager():
 		return set(self.outbox_messages)
 
 	def getInFolderALL(self, folder):
-		return set(self.in_folder[str(folder)])
+		in_fol = self.in_folder.get(str(folder), None)
+		if in_fol == None:
+			return set()
+		else:
+			return set(in_fol)
 
 	def getInFolder(self, folder):
 		current_folder = self.getFolder(folder)
@@ -256,6 +260,7 @@ class SetManager():
 
 	def persist_flat(self):
 		print '[PERSIST] : start'
+
 		start = time.time()
 
 		for message in OutboxMessage.objects.all():
@@ -296,7 +301,6 @@ class SetManager():
 			elif message not in self.in_folder[str(message.folder_id)]:
 				message.delete()
 
-
 		print '[PERSIST] : finished in %s' % str((time.time() - start))
 
 	def persist(self):
@@ -314,25 +318,42 @@ class SetManager():
 						data = self.queue.get()
 						data.save()
 
-	def write_state(self, title):
+	def write_state(self):
 		file_name = 'flat_%s.txt' % str(settings.RUNNING_HOST['id'])
 
-		with open(file_name, 'a') as f:
-			f.write(title)
-			f.write("Inbox: %s\n" % str(len(self.getInbox())))
-			f.write("Outbox: %s\n" % str(len(self.getOutbox())))
-			f.write("Folder: %s\n" % str(len(self.getFolders())))
-			for fol in self.getFolders():
-				f.write("%s: %s\n" % (str(fol.uuid), str(len(self.getInFolder(fol.uuid)))))
-			f.write("--- SETS ---\n")
-			f.write("AddMessage: %s\n" % str(len(self.add_messages)))
-			f.write("DelMessage: %s\n" % str(len(self.delete_messages)))
-			f.write("AddFolder: %s\n" % str(len(self.add_folders)))
-			f.write("DelFolder: %s\n" % str(len(self.delete_folders)))
-			f.write("OutboxMessage: %s\n" % str(len(self.outbox_messages)))
+		time.sleep(10)
+		write_time = 0
+
+		while True:
+
+			with open(file_name, 'a') as f:
+				count = 0
+
+				count += len(self.add_messages)
+				count += len(self.outbox_messages)
+				count += len(self.delete_messages)
+				count += len(self.add_folders)
+				count += len(self.delete_folders)
+
+				for folder in set(self.add_folders):
+					try:
+						count += len(self.in_folder[str(folder.uuid)])
+					except:
+						pass
+
+				for message in set(self.add_messages):
+					try:
+						count += len(self.mark[str(message.uuid)][2])
+						count += len(self.mark[str(message.uuid)][3])
+					except:
+						pass
+
+				f.write("%d\t%s\n" % (write_time, str(count)))
+			time.sleep(5)
+			write_time += 5
 
 	def flat(self):
-		self.write_state("--- BEFORE ---\n")
+		#self.write_state("--- BEFORE ---\n")
 
 		# flat in folders
 		for folder in self.add_folders:
@@ -378,7 +399,7 @@ class SetManager():
 		# flat delete_folders
 		self.delete_folders = set()
 
-		self.write_state("--- AFTER ---\n")
+		#self.write_state("--- AFTER ---\n")
 
 		self.do_flat = True
 
@@ -467,9 +488,10 @@ class FlatManager():
 					print '[COORDINATOR] READY : NOT ALL READY'
 					break
 			else:
-				print '[COORDINATOR] READY : ALL READY ; SENDING PRE COMMIT'
+				print '[COORDINATOR] READY : ALL READY ; SENDING COMMIT'
+
 				self.commit = True
-				toQueue(dict(operation='flatten', query='preCommit', host=settings.RUNNING_HOST['id']))				
+				toQueue(dict(operation='flatten', query='commit', host=settings.RUNNING_HOST['id']))				
 
 		if data['query'] == 'ack':
 			print '[COORDINATOR] ACK : CHECK IF ALL ACKED'
@@ -481,11 +503,14 @@ class FlatManager():
 					print '[COORDINATOR] ACK : NOT ALL ACKED'
 					break
 			else:
-				print '[COORDINATOR] ACK : ALL ACKED ; SENDING COMMIT'
-				toQueue(dict(operation='flatten', query='doCommit', host=settings.RUNNING_HOST['id']))
+				print '[COORDINATOR] ACK : ALL ACKED ; SENDING CLEAR'
+
+				toQueue(dict(operation='flatten', query='clear', host=settings.RUNNING_HOST['id']))
+				
 				settings.SET_MANAGER.flat()
 				self.clear()
 				settings.SET_MANAGER.clearBuffer()
+				
 				print '[COORDINATOR] FINISHED'
 
 	def follow(self, data):
@@ -504,19 +529,20 @@ class FlatManager():
 
 			settings.QUEUE[data['host']].put(dict(operation='flatten', query='ready', host=settings.RUNNING_HOST['id']))
 
-		if data['query'] == 'preCommit':
-			print '[FOLLOW] COMMIT : ACKNOWLEDGE'
+		if data['query'] == 'commit':
+			print '[FOLLOW] COMMIT + ACKNOWLEDGE'
+			
 			self.commit = True
 			settings.QUEUE[data['host']].put(dict(operation='flatten', query='ack', host=settings.RUNNING_HOST['id']))
 		
-		if data['query'] == 'doCommit':
-			print '[FOLLOW] COMMIT : FLAT'
-			settings.SET_MANAGER.flat()
+		if data['query'] == 'clear':
+			print '[FOLLOW] FLAT + CLEAR'
 
-			print '[FOLLOW] COMMIT : CLEAR'
+			settings.SET_MANAGER.flat()
 			self.clear()
 			settings.SET_MANAGER.clearBuffer()
-			print '[FOLLOW] COMMIT : FINISHED'
+
+			print '[FOLLOW] FINISHED'
 
 		if data['query'] == 'abort':
 			print '[FOLLOW] ABORT'
@@ -526,7 +552,7 @@ class FlatManager():
 		while True:
 			try:
 				if self.queue.empty():
-					if settings.SET_MANAGER.getOpCount() >= 500 and not self.flat:
+					if settings.SET_MANAGER.getOpCount() >= 1000 and not self.flat:
 						self.prepare()
 					else:
 						time.sleep(1)

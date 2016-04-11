@@ -144,6 +144,11 @@ class Client():
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
+	def getState(self):
+		self.url = url(self.hostname, self.port, "api_getState")
+		self.response = self.client.get(self.url)
+		return json.loads(self.response.content)
+
 def getState(host):
 	state = dict()
 	state['inbox'] = host.getInbox()
@@ -209,25 +214,31 @@ if __name__ == '__main__':
 
 	op = ['add', 'add_folder', 'delete', 'delete_folder', 'change_folder', 'mark_readed', 'mark_unreaded']
 
+	count_fol = 0
+
 	i = 0
 	while i < amount_op:
 		host = random.choice(hst_list)
 
 		if i % 100 == 0:
-			state = getState(host)
+			state = host.getState()
+			count_fol = len(state['folders'])
 
 		try:
 			operation = int(sys.argv[2])
 		except:
-			operation = random.choice([
-							0,0,0,0,0,0,0,0,0,0,
-							1,
-							2,2,2,2,2,
-							3,
-							4,4,4,4,4,4,4,4,4,4,
-							5,5,5,5,5,5,5,5,5,5,
-							6,6,6,6,6])
-			#operation = random.choice([5,6])
+			rnd_list = []
+
+			rnd_list.extend([0,0,0,0,0,0,0,0,0,0])
+			rnd_list.extend([1])
+			rnd_list.extend([2,2,2,2,2,2,2,2,2,2])
+			rnd_list.extend([3])
+			rnd_list.extend([4,4,4,4,4,4,4,4,4,4])
+			rnd_list.extend([5,5,5,5,5,5,5,5,5,5])
+			rnd_list.extend([6,6,6,6,6])
+
+			operation = random.choice(rnd_list)
+
 
 		# addMessage
 		if operation == 0:
@@ -236,8 +247,12 @@ if __name__ == '__main__':
 
 		# addFolder
 		if operation == 1:
+			if count_fol >= 10:
+				continue
+
 			op_start = time.time()
 			host.addFolder(i)
+			count_fol += 1
 			
 		# deleteMessage
 		if operation == 2:
@@ -252,6 +267,9 @@ if __name__ == '__main__':
 
 		# deleteFolder
 		if operation == 3:
+			if count_fol <= 5:
+				continue
+
 			fol_list = state['folders']
 
 			if not fol_list:
@@ -261,6 +279,7 @@ if __name__ == '__main__':
 
 			op_start = time.time()
 			host.deleteFolder(fol)
+			count_fol -= 1
 
 		# changeFolder
 		if operation == 4:
@@ -399,7 +418,10 @@ if __name__ == '__main__':
 
 		if set(state_0['unreaded']) == set(state_1['unreaded']) == set(state_2['unreaded']):
 			print '[TEST] Passed unreaded check - got ' + str(len(state_0['unreaded'])) + "/" + str(len(state_0['all'])) + ' messages.'
-
+		else:
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_0['unreaded'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_1['unreaded'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_2['unreaded'])) + "/" + str(len(state_0['all'])) + ' messages.'
 	print "\n[TEST] Logout user on each host.\n"
 	hst_list[0].logout()
 	hst_list[1].logout()

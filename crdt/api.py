@@ -168,6 +168,22 @@ def api_mark_unreaded(request):
 
 	return HttpResponseNotFound()
 
+def api_getState(request):
+	if not request.user.is_authenticated():
+		return HttpResponseForbidden()
+
+	state = dict()
+	state['inbox'] = [str(msg.uuid) for msg in settings.SET_MANAGER.getInbox()]
+	state['outbox'] = [str(msg.uuid) for msg in settings.SET_MANAGER.getOutbox()]
+	state['folders'] = [str(fol.uuid) for fol in settings.SET_MANAGER.getFolders()]
+	state['all'] = [str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'all')]
+	state['readed'] = [str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'readed')]
+	state['unreaded'] = [str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'unreaded')]
+	for folder_id in state['folders']:
+		state[folder_id] = [str(msg.uuid) for msg in settings.SET_MANAGER.getInFolder(str(folder_id))]
+
+	return JsonResponse(state)
+
 def api_getOutbox(request):
 	if not request.user.is_authenticated():
 		return HttpResponseForbidden()

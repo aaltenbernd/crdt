@@ -34,6 +34,7 @@ urlpatterns = [
     url(r'^api_deleteFolder$', api.api_deleteFolder),
     url(r'^api_mark_readed$', api.api_mark_readed),
     url(r'^api_mark_unreaded$', api.api_mark_unreaded),
+    url(r'^api_getState$', api.api_getState),
     url(r'^api_getWait$', api.api_getWait),
     url(r'^api_changeFolder$', api.api_changeFolder),
     url(r'^api_getOutbox$', api.api_getOutbox),

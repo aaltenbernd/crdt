@@ -56,4 +56,4 @@ if sys.argv[1] == 'run_host':
     thread.start_new_thread(SET_MANAGER.persist, ())
     FLAT_MANAGER = FlatManager()
     thread.start_new_thread(FLAT_MANAGER.run, ())
-    #thread.start_new_thread(SET_MANAGER.sync, ())
+    thread.start_new_thread(SET_MANAGER.write_state, ())
