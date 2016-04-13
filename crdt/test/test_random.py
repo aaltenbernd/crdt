@@ -353,7 +353,7 @@ if __name__ == '__main__':
 
 	if i != 0:
 		percent = int(float(i) / float(amount_op) * 100)
-		print '\n[TEST] ' + str(percent) + ' %\tcompleted\n'
+		print '\n\033[1m[TEST] ' + str(percent) + ' %\tcompleted\033[0m\n'
 
 		count = 0
 		for c in count_result:
