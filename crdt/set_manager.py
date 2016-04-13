@@ -248,8 +248,9 @@ class SetManager():
 
 	def getMessages(self):
 		messages = self.add_messages.difference(self.delete_messages)
-		for folder in self.getAddFolders():
-			messages.update(self.in_folder[str(folder)].difference(self.delete_messages))
+		for folder in self.getDeleteFolders():
+			if self.in_folder.get(str(folder.uuid), None) != None:
+				messages = messages.difference(self.in_folder[str(folder.uuid)])
 		return messages
 
 	def getInbox(self):

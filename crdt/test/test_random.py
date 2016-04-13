@@ -332,8 +332,8 @@ if __name__ == '__main__':
 			print host.response.status_code
 			continue
 
-		#op_end = time.time() - op_start
-		op_end = json.loads(host.response.content)['time']
+		op_end = time.time() - op_start
+		#op_end = json.loads(host.response.content)['time']
 		time_result += op_end
 		print '[TEST] %.4f seconds : %s to %d' % (op_end, op[operation], int(host.port))
 		count_result[operation] += 1
