@@ -229,13 +229,13 @@ if __name__ == '__main__':
 		except:
 			rnd_list = []
 
-			rnd_list.extend([0,0,0,0,0,0,0,0,0,0])
+			rnd_list.extend([0])
 			rnd_list.extend([1])
-			rnd_list.extend([2,2,2,2,2,2,2,2,2,2])
+			rnd_list.extend([2])
 			rnd_list.extend([3])
-			rnd_list.extend([4,4,4,4,4,4,4,4,4,4])
-			rnd_list.extend([5,5,5,5,5,5,5,5,5,5])
-			rnd_list.extend([6,6,6,6,6])
+			rnd_list.extend([4])
+			rnd_list.extend([5])
+			rnd_list.extend([6])
 
 			operation = random.choice(rnd_list)
 
