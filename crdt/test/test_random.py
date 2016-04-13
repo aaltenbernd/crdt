@@ -347,7 +347,7 @@ if __name__ == '__main__':
 
 		if i >= 100 and i % (amount_op/(amount_op/100)) == 0:
 			percent = int(float(i) / float(amount_op) * 100)
-			print '\n[TEST] ' + str(percent) + ' %\tcompleted\n'
+			print '\n\033[1m[TEST] ' + str(percent) + ' %\tcompleted\033[0m\n'
 
 		i += 1
 
