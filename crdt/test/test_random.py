@@ -333,6 +333,10 @@ if __name__ == '__main__':
 			continue
 
 		op_end = time.time() - op_start
+
+		with open("response.csv", "a") as f:
+			f.write("%.5f\n" % op_end)
+
 		#op_end = json.loads(host.response.content)['time']
 		time_result += op_end
 		print '[TEST] %.4f seconds : %s to %d' % (op_end, op[operation], int(host.port))
