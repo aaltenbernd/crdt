@@ -233,7 +233,7 @@ if __name__ == '__main__':
 			rnd_list.extend([1])
 			rnd_list.extend([2])
 			rnd_list.extend([3])
-			rnd_list.extend([4])
+			rnd_list.extend([4,4,4,4,4])
 			rnd_list.extend([5])
 			rnd_list.extend([6])
 
@@ -336,7 +336,9 @@ if __name__ == '__main__':
 		op_time = json.loads(host.response.content)['time']
 
 		with open("response.csv", "a") as f:
-			f.write("%.7f\n" % op_end)
+			s = "%.7f\n" % op_end
+			s = s.replace(".", ",")
+			f.write(s)
 
 		with open("operation.csv", "a") as f:
 			f.write("%.7f\n" % op_time)
