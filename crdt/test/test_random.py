@@ -333,11 +333,14 @@ if __name__ == '__main__':
 			continue
 
 		op_end = time.time() - op_start
+		op_time = json.loads(host.response.content)['time']
 
 		with open("response.csv", "a") as f:
-			f.write("%.5f\n" % op_end)
+			f.write("%.7f\n" % op_end)
 
-		#op_end = json.loads(host.response.content)['time']
+		with open("operation.csv", "a") as f:
+			f.write("%.7f\n" % op_time)
+		
 		time_result += op_end
 		print '[TEST] %.4f seconds : %s to %d' % (op_end, op[operation], int(host.port))
 		count_result[operation] += 1
