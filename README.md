@@ -100,7 +100,9 @@ python crdt/manage.py init --settings=settings.host_ID
 
 #### Develop on different hosts
 
-On Ubuntu simply follow the instruction ahead. Afterwards configure the hostlist in the ```settings/host_ID``` file and manipulate the IPs: 
+On Ubuntu simply follow the instruction ahead on each host.
+
+Afterwards configure the hostlist in the ```settings/host_ID``` file and manipulate the IPs: 
 
 ```python
 ALL_HOSTS = [
