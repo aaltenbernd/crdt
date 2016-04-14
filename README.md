@@ -54,6 +54,8 @@ Set "postgres" as a password for the "postgres" database role using the command:
 ```
 \postgres postgres
 ```
+Type Control+D or \q to exit the posgreSQL prompt.
+
 To create the database, type:
 
 ```
