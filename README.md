@@ -126,7 +126,7 @@ Start a simple test, by:
 python crdt/crdt/test/test_random.py
 ```
 
-If the E-Mail-Service is developed on different hosts, also configure the host list in line 14-18 and start the test, by:
+If the E-Mail-Service is developed on different hosts, also configure the hostlist in line 14-18 and start the test, by:
 ```
 ENV=production python crdt/crdt/test/test_random.py
 ```
