@@ -416,7 +416,7 @@ class SetManager():
 
 def toQueue(data):
 	for host in settings.OTHER_HOSTS:
-		settings.QUEUE[host['id']].put(dict(**data))
+		settings.SENDER[host['id']].queue.put(dict(**data))
 
 class FlatManager():
 	def __init__(self):
@@ -458,7 +458,7 @@ class FlatManager():
 		print '[COORDINATOR] PREPARE : CHECK QUEUES'
 
 		for host in settings.OTHER_HOSTS:
-			while not settings.QUEUE[host['id']].empty() or settings.SENDER[host['id']].isSending():
+			while not settings.SENDER[host['id']].queue.empty() or settings.SENDER[host['id']].isSending():
 				print '[COORDINATOR] PREPARE : QUEUE FULL'
 				time.sleep(1)
 				pass
@@ -521,20 +521,20 @@ class FlatManager():
 			print '[FOLLOW] PREPARE : CHECK QUEUE'
 
 			for host in settings.OTHER_HOSTS:
-				while not settings.QUEUE[host['id']].empty() or settings.SENDER[host['id']].isSending():
+				while not settings.SENDER[host['id']].queue.empty() or settings.SENDER[host['id']].isSending():
 					print '[FOLLOW] PREPARE : QUEUE FULL'
 					time.sleep(1)
 					pass
 
 			print '[FOLLOW] PREPARE : SENDING READY'
 
-			settings.QUEUE[data['host']].put(dict(operation='flatten', query='ready', host=settings.RUNNING_HOST['id']))
+			settings.SENDER[data['host']].queue.put(dict(operation='flatten', query='ready', host=settings.RUNNING_HOST['id']))
 
 		if data['query'] == 'commit':
 			print '[FOLLOW] COMMIT + ACKNOWLEDGE'
 			
 			self.commit = True
-			settings.QUEUE[data['host']].put(dict(operation='flatten', query='ack', host=settings.RUNNING_HOST['id']))
+			settings.SENDER[data['host']].queue.put(dict(operation='flatten', query='ack', host=settings.RUNNING_HOST['id']))
 		
 		if data['query'] == 'clear':
 			print '[FOLLOW] FLAT + CLEAR'

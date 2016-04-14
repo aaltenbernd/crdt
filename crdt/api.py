@@ -236,7 +236,7 @@ def api_getWait(request):
 		return HttpResponseForbidden()
 
 	for host in settings.OTHER_HOSTS:
-		if not settings.QUEUE[host['id']].empty():
+		if not settings.SENDER[host['id']].queue.empty():
 			return HttpResponseBadRequest()
 		if settings.SENDER[host['id']].sending:
 			return HttpResponseBadRequest()

@@ -1,6 +1,7 @@
 import time
 import requests
 import json
+import Queue
 
 from django.conf import settings
 
@@ -18,10 +19,10 @@ class Sender():
         self.post_data = None
         self.response = None
         self.count = 0
-        self.send_count = 0
         self.total_time = float(0)
         self.old_qsize = 0
         self.sending = True
+        self.queue = Queue.Queue()
 
     def send_post(self, data):
         self.post_data = data
@@ -42,15 +43,13 @@ class Sender():
                 pass
 
         while True:
-            if settings.QUEUE[host['id']].empty():
+            if self.queue.empty():
                 self.sending = False
                 time.sleep(1)
-                if self.send_count > 0:
-                    settings.SEND_TIME[host['id']] = float(self.total_time)/float(self.send_count)
             else:
                 self.sending = True
 
-                qsize = settings.QUEUE[host['id']].qsize()
+                qsize = self.queue.qsize()
                 if qsize < BATCH_SIZE and qsize != self.old_qsize:
                     time.sleep(1)
                     self.old_qsize = qsize
@@ -59,11 +58,10 @@ class Sender():
                     self.count += 1
                 else:
                     data_list = []
-                    while not settings.QUEUE[host['id']].empty():
-                        op = settings.QUEUE[host['id']].get()
+                    while not self.queue.empty():
+                        op = self.queue.get()
                         data_list.append(op)
                         shuffle(data_list)
-                        self.send_count += 1
                     data_dict = dict(list=json.dumps(data_list))  
 
                     while True:

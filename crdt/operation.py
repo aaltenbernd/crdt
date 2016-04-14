@@ -166,5 +166,5 @@ def createUser(username, password):
 	user.save()
 
 	for host in settings.OTHER_HOSTS:
-		settings.QUEUE[host['id']].put(dict(uuid=str(user.userprofile.uuid), username=username, password=password, operation='add_user'))
+		settings.SENDER[host['id']].queue.put(dict(uuid=str(user.userprofile.uuid), username=username, password=password, operation='add_user'))
  	return user.userprofile.uuid
