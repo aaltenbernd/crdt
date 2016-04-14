@@ -1,4 +1,4 @@
-### Distributed E-Mail Service Implemented With Conflict-Free Replicated Data Types
+### Distributed E-Mail Service Implemented With CRDTs
 
 #### Develop : General
 
