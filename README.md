@@ -2,7 +2,7 @@
 
 #### Localhost : General 
 
-Generally each host has an id, a port and a hostname. Further there is a settings file located in ```settings/host_ID``` for each host. By default ```python manage.py runserver``` will start the server with the ```settings/host_0``` file. The initial setup includes three hosts.
+Generally each host has an **id**, a **port** and a **hostname**. Further there is a settings file located in ```settings/host_ID``` for each host. By default ```python manage.py runserver``` will start the server with the ```settings/host_0``` file. The initial setup includes three hosts.
 
 * The hostlist is given in line 19-23:
 
