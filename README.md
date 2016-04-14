@@ -1,8 +1,8 @@
-### Distributed E-Mail Service Implemented With CRDTs
+### Distributed E-Mail-Service Implemented With CRDTs
 
 #### Localhost : General 
 
-Generally each host has an id, a port and a hostname. Further there is a settings file located in ```settings/host_ID``` for each host. On default ```python manage.py runserver``` will start the server with ```settings/host_0``` file. On default there is a setup of three hosts.
+Generally each host has an id, a port and a hostname. Further there is a settings file located in ```settings/host_ID``` for each host. On default ```python manage.py runserver``` will start the server with the ```settings/host_0``` file. On default there is a setup of three hosts.
 
 * The hostlist is given in line 19-23:
 
@@ -37,7 +37,7 @@ DATABASES = {
 
 #### Localhost : Getting started
 
-On Ubuntu simply follow this instruction to deploy an instance of the E-Mail Service.
+On Ubuntu simply follow this instruction to deploy an instance of the E-Mail-Service.
 
 Install postgres, by:
 
