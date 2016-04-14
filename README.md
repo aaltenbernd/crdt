@@ -49,7 +49,7 @@ In a terminal, type:
 ```
 sudo -u postgres psql postgres
 ```
-Set "postgres" as a password for the "postgres" database role using the command. Afterwards type Control+D or \q to exit the posgreSQL prompt:
+Set "postgres" as a password for the "postgres" database role using the command:
 
 ```
 \postgres postgres
