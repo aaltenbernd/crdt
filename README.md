@@ -111,3 +111,23 @@ ALL_HOSTS = [
 	{'id' : 2, 'port' : 8002, 'hostname' : "http://IP_HOST_2"},
 ]
 ```
+And start the host, by:
+
+```
+python crdt/manage.py run_host --settings=settings.host_ID --production
+```
+
+
+#### Test
+
+Start a simple test, by:
+
+```
+python crdt/crdt/test/test_random.py
+```
+
+If the E-Mail-Service is developed on different hosts, also configure the host list in line 14-18 and start the test, by:
+```
+ENV=production python crdt/crdt/test/test_random.py
+```
+

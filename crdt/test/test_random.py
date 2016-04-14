@@ -165,16 +165,16 @@ def getState(host):
 
 if __name__ == '__main__':
 	if len(sys.argv) != 2 and len(sys.argv) != 3 and len(sys.argv) != 4:
-		print "[TEST] usage : python test_random.py parameter operation"		
-		print "[TEST] parameter = -1 : register a test user"
-		print "[TEST] parameter >= 0 : amount of operations"
-		print "[TEST] if operation is not picked a test with random operation is starting"
-		print "[TEST] optional operation in {0, 1, 2, 3, 4} with:"
+		print "[TEST] usage : python test_random.py amount operation"
+		print "[TEST] if no operation is picked a test with random operations is starting"
+		print "[TEST] pick a optional operation in {0, 1, 2, 3, 4, 5, 6} with:"
 		print "[TEST] \t 0 : add"
 		print "[TEST] \t 1 : add_folder"
 		print "[TEST] \t 2 : delete"
 		print "[TEST] \t 3 : delete_folder"
 		print "[TEST] \t 4 : change_folder"
+		print "[TEST] \t 5 : mark_read"
+		print "[TEST] \t 6 : mark_unread"
 		sys.exit(1)
 
 	try:
