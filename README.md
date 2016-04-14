@@ -1,8 +1,8 @@
 ### Distributed E-Mail Service Implemented With CRDTs
 
-#### Develop : General
+#### Localhost : General 
 
-Generally each host has an id, a port and a hostname. Further there is a settings file located in ```settings/host_ID``` for each host. On default ```python manage.py runserver``` will start the server with ```settings/host_0``` file.  
+Generally each host has an id, a port and a hostname. Further there is a settings file located in ```settings/host_ID``` for each host. On default ```python manage.py runserver``` will start the server with ```settings/host_0``` file. On default there is a setup of three hosts.
 
 * The hostlist is given in line 19-23:
 
@@ -35,7 +35,7 @@ DATABASES = {
 }
 ```
 
-#### Develop : Getting started on localhost
+#### Localhost : Getting started
 
 On Ubuntu simply follow this instruction to deploy an instance of the E-Mail Service.
 
@@ -96,4 +96,14 @@ If you want to clear the database, type:
 python crdt/manage.py init --settings=settings.host_ID
 ```
 
+#### Develop on different hosts
 
+On Ubuntu simply follow the instruction ahead. Afterwards configure the hostlist in the ```settings/host_ID``` file and manipulate the IPs: 
+
+```python
+ALL_HOSTS = [
+	{'id' : 0, 'port' : 8000, 'hostname' : "http://IP_HOST_0"},
+	{'id' : 1, 'port' : 8001, 'hostname' : "http://IP_HOST_1"},
+	{'id' : 2, 'port' : 8002, 'hostname' : "http://IP_HOST_2"},
+]
+```
