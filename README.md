@@ -1,25 +1,41 @@
-##### Distributed E-Mail Service Implemented With Conflict-Free Replicated Data Types
+### Distributed E-Mail Service Implemented With Conflict-Free Replicated Data Types
 
-###### Develop : General
+#### Develop : General
 
-Generally each host has a id, port and hostname. Further each host a settings file located in ```settings/host_ID```. The hostlist is given in line 19-23:
+Generally each host has an id, a port and a hostname. Further there is a settings file located in ```settings/host_ID``` for each host. On default ```python manage.py runserver``` will start the server with ```settings/host_0``` file.  
+
+* The hostlist is given in line 19-23:
+
 ```python
 ALL_HOSTS = [
 	{'id' : 0, 'port' : 8000, 'hostname' : "http://127.0.0.1"},
 	{'id' : 1, 'port' : 8001, 'hostname' : "http://127.0.0.1"},
 	{'id' : 2, 'port' : 8002, 'hostname' : "http://127.0.0.1"},
 ]
-``` 
+```
 
-* each host has a id, port and hostname
-* each host has a settings file in ```settings/host_ID```
-* on default:
+* And the running host is specified in line 25:
 
+```python
+RUNNING_HOST = ALL_HOSTS[ID]
+```
 
+* The connection to the postgres database can be configured in line 6-15:
 
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'db_host_ID',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+```
 
-
-###### Develop : Getting started on localhost
+#### Develop : Getting started on localhost
 
 On Ubuntu simply follow this instruction to deploy an instance of the E-Mail Service.
 
@@ -81,25 +97,3 @@ python crdt/manage.py init --settings=settings.host_ID
 ```
 
 
-
-
-* Jeder Host ist als Paar mit ID und PORT gespeichert
-* Die Standardkonfiguration hat drei Hosts:
-	* ```ID = 0 und PORT = 8000```
-	* ```ID = 1 und PORT = 8001```
-	* ```ID = 2 und PORT = 8002```
-* Hosts können mit Angabe des jeweiligen ports gestrartet werden.
-* Postgres Datenbank ist auf ```127.0.0.1:5432``` gesetzt
-* jeweilige Datenbank muss als ```db_host_ID``` benannt sein
-
-###### Host starten:
-
-```
-python manage.py run_host --settings=settings.host_ID
-```
-
-###### Host zurücksetzen:
-
-```
-python manage.py init --settings=settings.host_ID
-```
