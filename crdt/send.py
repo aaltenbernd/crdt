@@ -78,3 +78,8 @@ class Sender():
                             continue
 
                     self.count = 0
+
+
+def toQueue(data):
+    for host in settings.OTHER_HOSTS:
+        settings.SENDER[host['id']].queue.put(dict(**data))

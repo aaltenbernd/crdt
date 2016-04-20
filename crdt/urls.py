@@ -1,29 +1,31 @@
 from django.conf.urls import url, include
 from django.contrib import admin
 
-from . import views
+from . import template_views
+from . import receive
 from . import api
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
 
-    url(r'^$', views.index, name='index'),
-    url(r'^login$', views.login_view, name='login'),
-    url(r'^logout$', views.logout_view, name='logout'),
-    url(r'^register$', views.register, name='register'),
-    url(r'^set_pagination/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/$', views.set_pagination, name='set_pagination'),
-    url(r'^set_pagination/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', views.set_pagination, name='set_pagination'),
-    url(r'^mark/(?P<message_id>[-\w]+)/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/$', views.mark, name='mark'),
-    url(r'^mark/(?P<message_id>[-\w]+)/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', views.mark, name='mark'),
-    url(r'^show_messages/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/(?P<msg_slice>.+)/$', views.show_messages, name='show_messages'),
-    url(r'^show_messages/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/(?P<msg_slice>.+)/$', views.show_messages, name='show_messages'),
-    url(r'^delete/(?P<active_folder_id>[-\w]+)/(?P<message_id>[-\w]+)/(?P<mark>readed|unreaded)/$', views.delete, name='delete'),
-    url(r'^delete_folder/(?P<active_folder_id>[-\w]+)/$', views.delete_folder, name='delete_folder'),
-    url(r'^change_folder/(?P<active_folder_id>[-\w]+)/(?P<message_id>[-\w]+)/(?P<mark>readed|unreaded)/$', views.change_folder, name='change_folder'),
-    url(r'^add_folder/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', views.add_folder, name='add_folder'),
-    url(r'^send_message/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', views.send_message, name='send_message'),
-    url(r'^send_message/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/$', views.send_message, name='send_message'),
-    url(r'^receive/', views.receive, name='receive'),
+    url(r'^$', template_views.index, name='index'),
+    url(r'^login$', template_views.login_view, name='login'),
+    url(r'^logout$', template_views.logout_view, name='logout'),
+    url(r'^register$', template_views.register, name='register'),
+    url(r'^set_pagination/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/$', template_views.set_pagination, name='set_pagination'),
+    url(r'^set_pagination/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', template_views.set_pagination, name='set_pagination'),
+    url(r'^mark/(?P<message_id>[-\w]+)/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/$', template_views.mark, name='mark'),
+    url(r'^mark/(?P<message_id>[-\w]+)/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', template_views.mark, name='mark'),
+    url(r'^show_messages/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/(?P<msg_slice>.+)/$', template_views.show_messages, name='show_messages'),
+    url(r'^show_messages/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/(?P<msg_slice>.+)/$', template_views.show_messages, name='show_messages'),
+    url(r'^delete/(?P<active_folder_id>[-\w]+)/(?P<message_id>[-\w]+)/(?P<mark>readed|unreaded)/$', template_views.delete, name='delete'),
+    url(r'^delete_folder/(?P<active_folder_id>[-\w]+)/$', template_views.delete_folder, name='delete_folder'),
+    url(r'^change_folder/(?P<active_folder_id>[-\w]+)/(?P<message_id>[-\w]+)/(?P<mark>readed|unreaded)/$', template_views.change_folder, name='change_folder'),
+    url(r'^add_folder/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', template_views.add_folder, name='add_folder'),
+    url(r'^send_message/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', template_views.send_message, name='send_message'),
+    url(r'^send_message/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/$', template_views.send_message, name='send_message'),
+    
+    url(r'^receive/', receive.receive, name='receive'),
 
     url(r'^api_register$', api.api_register),
     url(r'^api_login$', api.api_login),

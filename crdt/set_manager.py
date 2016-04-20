@@ -5,13 +5,13 @@ import Queue
 import requests
 import json
 
+# need to be called 
+# to get access to django models
 django.setup()
 
-from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password, is_password_usable
-from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
-from .views import toQueue
+
+from .send import toQueue
 from .models import *
 
 class SetManager():
@@ -65,14 +65,6 @@ class SetManager():
 
 		self.buffer = Queue.Queue()
 		self.queue = Queue.Queue()
-
-		self.add_messages_db = set()
-		self.del_messages_db = set()
-		self.out_messages_db = set()
-		self.add_folders_db = set()
-		self.del_folders_db = set()
-		self.readed_db = set()
-		self.unreaded_db = set()
 		
 	def add(self, data, queue):
 		if queue:
@@ -355,8 +347,6 @@ class SetManager():
 			write_time += 5
 
 	def flat(self):
-		#self.write_state("--- BEFORE ---\n")
-
 		# flat in folders
 		for folder in self.add_folders:
 			self.in_folder[str(folder.uuid)] = self.in_folder[str(folder.uuid)].difference(self.delete_messages)
@@ -400,8 +390,6 @@ class SetManager():
 
 		# flat delete_folders
 		self.delete_folders = set()
-
-		#self.write_state("--- AFTER ---\n")
 
 		self.do_flat = True
 
