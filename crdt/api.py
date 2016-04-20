@@ -23,16 +23,12 @@ def api_register(request):
 		if password != password_confirm:
 			return HttpResponseBadRequest()
 
-		try:
-			createUser(
-				username, 
-				password
-			)
+		createUser(
+			username, 
+			password
+		)
 
-			return HttpResponse(status=200)
-		except:
-			return HttpResponseBadRequest() 
-
+		return HttpResponse(status=200)
 
 	return HttpResponseNotFound()
 
@@ -91,7 +87,6 @@ def api_addMessage(request):
 			return HttpResponseBadRequest()
 
 		time = addMessage(
-			request.user.userprofile.uuid,
 			text, 
 			author_uuid, 
 			reader_uuid
@@ -113,10 +108,7 @@ def api_deleteMessage(request):
 	if request.method == 'POST':
 		message_id = request.POST.get('message_id')
 
-		time = deleteMessage(
-			request.user.userprofile.uuid,
-			message_id
-		)
+		time = deleteMessage(message_id)
 
 		if time is None:
 			return HttpResponseBadRequest()
@@ -135,10 +127,7 @@ def api_addFolder(request):
 
 		title = request.POST.get('title')
 
-		time = addFolder(
-			request.user.userprofile.uuid,
-			title
-		)
+		time = addFolder(request.user.userprofile.uuid, title)
 
 		if time is None:
 			return HttpResponseBadRequest()
@@ -156,10 +145,7 @@ def api_deleteFolder(request):
 	if request.method == "POST":
 		folder_id = request.POST.get('folder_id')
 
-		time = deleteFolder(
-			request.user.userprofile.uuid, 
-			folder_id
-		)
+		time = deleteFolder(folder_id)
 
 		if time is None:
 			return HttpResponseBadRequest()
@@ -183,7 +169,6 @@ def api_changeFolder(request):
 		old_folder = request.POST.get('old_folder')
 
 		time = changeFolder(
-			request.user.userprofile.uuid, 
 			message_id, 
 			old_folder, 
 			folder_choice
@@ -205,10 +190,7 @@ def api_mark_readed(request):
 	if request.method == "POST":
 		message_id = request.POST.get('message_id')
 
-		time = mark_readed(
-			request.user.userprofile.uuid, 
-			message_id
-		)
+		time = mark_readed(message_id)
 
 		return JsonResponse(dict(time=time))
 
@@ -223,10 +205,7 @@ def api_mark_unreaded(request):
 	if request.method == "POST":
 		message_id = request.POST.get('message_id')
 
-		time = mark_unreaded(
-			request.user.userprofile.uuid, 
-			message_id
-		)
+		time = mark_unreaded(message_id)
 
 		return JsonResponse(dict(time=time))
 
