@@ -253,6 +253,8 @@ class SetManager():
 		return inbox
 
 	def persist_flat(self):
+		"""See persist function."""
+
 		print '[PERSIST] : start'
 
 		start = time.time()
@@ -298,6 +300,13 @@ class SetManager():
 		print '[PERSIST] : finished in %s' % str((time.time() - start))
 
 	def persist(self):
+		"""
+		Persisting objects which are contained by the queue of the set manager.
+		If do_flat attribut is set true it calls persist_flat 
+		which deletes all objects in the database
+		which are not relevant for the state.
+		"""
+
 		time.sleep(2)
 		while(True):
 			if self.do_flat:
@@ -313,6 +322,11 @@ class SetManager():
 						data.save()
 
 	def write_state(self):
+		"""
+		Writing periodically the amount of objects to flat_ID.txt.
+		Just for testing.
+		"""
+
 		file_name = 'flat_%s.txt' % str(settings.RUNNING_HOST['id'])
 
 		time.sleep(10)
@@ -347,6 +361,11 @@ class SetManager():
 			write_time += 5
 
 	def flat(self):
+		"""
+		Deletes all objekts which are not relevant for the state.
+		Afterwards telling the persist thread to do the same.
+		"""
+
 		# flat in folders
 		for folder in self.add_folders:
 			self.in_folder[str(folder.uuid)] = self.in_folder[str(folder.uuid)].difference(self.delete_messages)
@@ -396,9 +415,12 @@ class SetManager():
 		self.op_count = 0
 
 	def clearBuffer(self):
+		"""Executing all operations which were buffered while flatten."""
+
 		while not self.buffer.empty():
-			print 'buffer clear'
 			data = self.buffer.get()
+
 			obj = self.addToSet(data)
+
 			if obj:
 				self.queue.put(obj)

@@ -1,10 +1,19 @@
 import json
 
+from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
 def receive(request):
+    """
+    Receives a list of operations sent by other hosts.
+    Depending on the operation:
+        - add_user: creating new user
+        - flatten: passing to flat manager
+        - other: passing to set manager
+    """
+
     if request.method == 'POST':
         data_dict = request.POST.dict()        
 
@@ -26,6 +35,6 @@ def receive(request):
             else:
                 settings.SET_MANAGER.add(data, False)
 
-        return redirect('index')
+        return HttpResponse(status=200)
     else:   
-        return redirect('index')
+        return HttpResponse(status=200)
