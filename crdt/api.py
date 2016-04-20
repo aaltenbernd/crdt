@@ -8,6 +8,10 @@ from django.conf import settings
 from .models import *
 from .operation import *
 
+# HttpResponseBadRequest = 400 status code
+# HttpResponseForbidden = 403 status code
+# HttpResponseNotFound = 404 status code
+
 def api_register(request):
 	"""Register procedure with given username and password in the post request."""
 
@@ -19,12 +23,16 @@ def api_register(request):
 		if password != password_confirm:
 			return HttpResponseBadRequest()
 
-		createUser(
-			username, 
-			password
-		)
+		try:
+			createUser(
+				username, 
+				password
+			)
 
-		return HttpResponse(status=200)
+			return HttpResponse(status=200)
+		except:
+			return HttpResponseBadRequest() 
+
 
 	return HttpResponseNotFound()
 
@@ -48,7 +56,7 @@ def api_login(request):
 		)
 
 		try:
-			login(request,user)
+			login(request,user) 
 		except:
 			return HttpResponseForbidden()
 
@@ -326,7 +334,7 @@ def api_getUnreadedMessages(request):
 
 def api_getWait(request):
 	"""
-	Returns HTTP 200,
+	Returns HTTP OK,
 	if host is not distributing or working off any queues/buffers.
 	"""
 
