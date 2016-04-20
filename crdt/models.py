@@ -44,6 +44,18 @@ class OutboxMessage(models.Model):
 			operation="add_outbox",
 		)
 
+	def getAuthor(self):
+		try:
+			return UserProfile.objects.get(uuid=self.author_id).user.username
+		except:
+			return "Not found."
+
+	def getReader(self):
+		try:
+			return UserProfile.objects.get(uuid=self.reader_id).user.username
+		except:
+			return "Not found."
+
 class AddMessage(models.Model):
 	uuid = models.UUIDField(editable=False)
 	date = models.CharField(max_length=40)
@@ -72,6 +84,18 @@ class AddMessage(models.Model):
 			date=self.date,
 			operation="add",
 		)
+
+	def getAuthor(self):
+		try:
+			return UserProfile.objects.get(uuid=self.author_id).user.username
+		except:
+			return "Not found."
+
+	def getReader(self):
+		try:
+			return UserProfile.objects.get(uuid=self.reader_id).user.username
+		except:
+			return "Not found."
 
 class DeleteMessage(models.Model):
 	uuid = models.UUIDField(editable=False)

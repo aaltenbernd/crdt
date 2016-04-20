@@ -266,3 +266,7 @@ def receive(request):
         return redirect('index')
     else:   
         return redirect('index')
+
+def toQueue(data):
+    for host in settings.OTHER_HOSTS:
+        settings.SENDER[host['id']].queue.put(dict(**data))

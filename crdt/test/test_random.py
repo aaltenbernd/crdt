@@ -36,7 +36,6 @@ class Client():
 		self.sessionid = None
 
 		self.client = requests.session()
-		# only needed if csrf token is necessary
 		self.url = self.hostname + ":" + str(self.port)
 		self.client.get(self.url)
 		self.csrftoken = self.client.cookies['csrftoken']

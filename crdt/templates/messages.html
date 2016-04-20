@@ -221,8 +221,8 @@
                             <div class="panel-heading">{{ message.uuid }}</div>
                             {% endif %}
                             <div class="panel-body">
-                                <p>from : {{ message.author_id }}</p>
-                                <p>to : {{ message.reader_id }}</p>
+                                <p>from : {{ message.getAuthor }}</p>
+                                <p>to : {{ message.getReader }}</p>
                                 <p>date : {{ message.date }}</p>
                                 <p>text : {{ message.text }}</p>
                             </div>

@@ -34,10 +34,12 @@ if sys.argv[1] == 'run_host':
         SENDER[host['id']] = Sender(host['port'], host['hostname'])
         thread.start_new_thread(SENDER[host['id']].run, (host, ))
 
-    from crdt.set_manager import SetManager, FlatManager
+    from crdt.set_manager import SetManager
 
     SET_MANAGER = SetManager()
     thread.start_new_thread(SET_MANAGER.persist, ())
+
+    from crdt.flat_manager import FlatManager
 
     FLAT_MANAGER = FlatManager()
     thread.start_new_thread(FLAT_MANAGER.run, ())
