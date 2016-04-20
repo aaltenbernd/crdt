@@ -325,8 +325,10 @@ def api_getUnreadedMessages(request):
 	)
 
 def api_getWait(request):
-	"""Returns HTTP 200,
-	if host is not distributing or working off any queues/buffers."""
+	"""
+	Returns HTTP 200,
+	if host is not distributing or working off any queues/buffers.
+	"""
 
 	if not request.user.is_authenticated():
 		return HttpResponseForbidden()
