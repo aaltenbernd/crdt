@@ -169,5 +169,5 @@ if sys.argv[1] == 'run_host':
 
     from crdt.flat_manager import FlatManager
 
-    #FLAT_MANAGER = FlatManager()
+    FLAT_MANAGER = FlatManager()
     #thread.start_new_thread(FLAT_MANAGER.run, ())
