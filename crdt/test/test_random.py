@@ -336,7 +336,7 @@ if __name__ == '__main__':
 
 		with open("response.csv", "a") as f:
 			s = "%.7f\n" % op_end
-			s = s.replace(".", ",")
+			#s = s.replace(".", ",")
 			f.write(s)
 
 		with open("operation.csv", "a") as f:
