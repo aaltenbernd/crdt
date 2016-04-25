@@ -1,9 +1,12 @@
 import json
 
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+
+from .models import *
 
 def receive(request):
     """
@@ -35,6 +38,6 @@ def receive(request):
             else:
                 settings.SET_MANAGER.add(data, False)
 
-        return HttpResponse(status=200)
+        return redirect('index')
     else:   
-        return HttpResponse(status=200)
+        return redirect('index')
