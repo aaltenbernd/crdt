@@ -40,7 +40,7 @@ def addMessage(text, author_id, reader_id):
 
 	settings.SET_MANAGER.add(inbox_message, True)
 	
-	outbox_message = dict(
+	'''outbox_message = dict(
 		uuid=str(uuid.uuid4()), 
 		date=date, 
 		operation='add_outbox', 
@@ -50,7 +50,7 @@ def addMessage(text, author_id, reader_id):
 		host=settings.RUNNING_HOST['id']
 	)
 
-	settings.SET_MANAGER.add(outbox_message, True)
+	settings.SET_MANAGER.add(outbox_message, True)'''
 
 	return time.time() - start
 
