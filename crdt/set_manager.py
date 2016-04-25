@@ -71,13 +71,13 @@ class SetManager():
 			while settings.FLAT_MANAGER.getFlat():
 				print 'FLAT: Block till flatted'
 				time.sleep(1)
-
 			self.op_count += 1
-			self.write_state()
 			toQueue(data)
 		elif settings.FLAT_MANAGER.getCommit():
 			self.buffer.put(dict(data))
 			return
+
+		self.write_state()
 
 		obj = self.addToSet(data)
 		if obj:
