@@ -166,7 +166,7 @@ if sys.argv[1] == 'run_host':
 
     SET_MANAGER = SetManager()
     thread.start_new_thread(SET_MANAGER.persist, ())
-    thread.start_new_thread(SET_MANAGER.write_state, ())
+    #thread.start_new_thread(SET_MANAGER.write_state, ())
 
     from crdt.flat_manager import FlatManager
 

@@ -73,6 +73,7 @@ class SetManager():
 				time.sleep(1)
 
 			self.op_count += 1
+			self.write_state()
 			toQueue(data)
 		elif settings.FLAT_MANAGER.getCommit():
 			self.buffer.put(dict(data))
@@ -329,36 +330,36 @@ class SetManager():
 
 		file_name = 'flat_%s.txt' % str(settings.RUNNING_HOST['id'])
 
-		time.sleep(10)
-		write_time = 0
+		#time.sleep(10)
+		#write_time = 0
 
-		while True:
+		#while True:
 
-			with open(file_name, 'a') as f:
-				count = 0
+		with open(file_name, 'a') as f:
+			count = 0
 
-				count += len(self.add_messages)
-				count += len(self.outbox_messages)
-				count += len(self.delete_messages)
-				count += len(self.add_folders)
-				count += len(self.delete_folders)
+			count += len(self.add_messages)
+			count += len(self.outbox_messages)
+			count += len(self.delete_messages)
+			count += len(self.add_folders)
+			count += len(self.delete_folders)
 
-				for folder in set(self.add_folders):
-					try:
-						count += len(self.in_folder[str(folder.uuid)])
-					except:
-						pass
+			for folder in set(self.add_folders):
+				try:
+					count += len(self.in_folder[str(folder.uuid)])
+				except:
+					pass
 
-				for message in set(self.add_messages):
-					try:
-						count += len(self.mark[str(message.uuid)][2])
-						count += len(self.mark[str(message.uuid)][3])
-					except:
-						pass
+			for message in set(self.add_messages):
+				try:
+					count += len(self.mark[str(message.uuid)][2])
+					count += len(self.mark[str(message.uuid)][3])
+				except:
+					pass
 
-				f.write("%s\n" % str(count))
-			time.sleep(5)
-			write_time += 5
+			f.write("%s\n" % str(count))
+			#time.sleep(5)
+			#write_time += 5
 
 	def flat(self):
 		"""
