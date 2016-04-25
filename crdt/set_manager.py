@@ -356,8 +356,8 @@ class SetManager():
 					except:
 						pass
 
-				f.write("%d\t%s\n" % (write_time, str(count)))
-			time.sleep(5)
+				f.write("%s\n" % str(count))
+			time.sleep(10)
 			write_time += 5
 
 	def flat(self):
