@@ -13,36 +13,36 @@ urlpatterns = [
     url(r'^logout$', template_views.logout_view, name='logout'),
     url(r'^register$', template_views.register, name='register'),
     url(
-        r'^set_pagination/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/$', 
+        r'^set_pagination/(?P<active_folder_id>inbox|outbox)/(?P<mark>read|unread)/$', 
         template_views.set_pagination, 
         name='set_pagination'
     ),
     url(
-        r'^set_pagination/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', 
+        r'^set_pagination/(?P<active_folder_id>[-\w]+)/(?P<mark>read|unread)/$', 
         template_views.set_pagination, name='set_pagination'
     ),
     url(
-        r'^mark/(?P<message_id>[-\w]+)/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/$', 
+        r'^mark/(?P<message_id>[-\w]+)/(?P<active_folder_id>inbox|outbox)/(?P<mark>read|unread)/$', 
         template_views.mark, 
         name='mark'
     ),
     url(
-        r'^mark/(?P<message_id>[-\w]+)/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', 
+        r'^mark/(?P<message_id>[-\w]+)/(?P<active_folder_id>[-\w]+)/(?P<mark>read|unread)/$', 
         template_views.mark, 
         name='mark'
     ),
     url(
-        r'^show_messages/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/(?P<msg_slice>.+)/$', 
+        r'^show_messages/(?P<active_folder_id>inbox|outbox)/(?P<mark>read|unread)/(?P<msg_slice>.+)/$', 
         template_views.show_messages, 
         name='show_messages'
     ),
     url(
-        r'^show_messages/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/(?P<msg_slice>.+)/$', 
+        r'^show_messages/(?P<active_folder_id>[-\w]+)/(?P<mark>read|unread)/(?P<msg_slice>.+)/$', 
         template_views.show_messages, 
         name='show_messages'
     ),
     url(
-        r'^delete/(?P<active_folder_id>[-\w]+)/(?P<message_id>[-\w]+)/(?P<mark>readed|unreaded)/$', 
+        r'^delete/(?P<active_folder_id>[-\w]+)/(?P<message_id>[-\w]+)/(?P<mark>read|unread)/$', 
         template_views.delete, 
         name='delete'
     ),
@@ -52,22 +52,22 @@ urlpatterns = [
         name='delete_folder'
     ),
     url(
-        r'^change_folder/(?P<active_folder_id>[-\w]+)/(?P<message_id>[-\w]+)/(?P<mark>readed|unreaded)/$', 
+        r'^change_folder/(?P<active_folder_id>[-\w]+)/(?P<message_id>[-\w]+)/(?P<mark>read|unread)/$', 
         template_views.change_folder, 
         name='change_folder'
     ),
     url(
-        r'^add_folder/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', 
+        r'^add_folder/(?P<active_folder_id>[-\w]+)/(?P<mark>read|unread)/$', 
         template_views.add_folder, 
         name='add_folder'
     ),
     url(
-        r'^send_message/(?P<active_folder_id>[-\w]+)/(?P<mark>readed|unreaded)/$', 
+        r'^send_message/(?P<active_folder_id>[-\w]+)/(?P<mark>read|unread)/$', 
         template_views.send_message, 
         name='send_message'
     ),
     url(
-        r'^send_message/(?P<active_folder_id>inbox|outbox)/(?P<mark>readed|unreaded)/$', 
+        r'^send_message/(?P<active_folder_id>inbox|outbox)/(?P<mark>read|unread)/$', 
         template_views.send_message, 
         name='send_message'
     ),
@@ -81,8 +81,8 @@ urlpatterns = [
     url(r'^api_deleteMessage$', api.api_deleteMessage),
     url(r'^api_addFolder$', api.api_addFolder),
     url(r'^api_deleteFolder$', api.api_deleteFolder),
-    url(r'^api_mark_readed$', api.api_mark_readed),
-    url(r'^api_mark_unreaded$', api.api_mark_unreaded),
+    url(r'^api_markRead$', api.api_markRead),
+    url(r'^api_markUnread$', api.api_markUnread),
     url(r'^api_getState$', api.api_getState),
     url(r'^api_getWait$', api.api_getWait),
     url(r'^api_changeFolder$', api.api_changeFolder),
@@ -91,6 +91,6 @@ urlpatterns = [
     url(r'^api_getFolders$', api.api_getFolders),
     url(r'^api_getInFolder$', api.api_getInFolder),
     url(r'^api_getAllMessages$', api.api_getAllMessages),
-    url(r'^api_getReadedMessages$', api.api_getReadedMessages),
-    url(r'^api_getUnreadedMessages$', api.api_getUnreadedMessages),
+    url(r'^api_getReadMessages$', api.api_getReadMessages),
+    url(r'^api_getUnreadMessages$', api.api_getUnreadMessages),
 ]

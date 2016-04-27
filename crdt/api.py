@@ -181,7 +181,7 @@ def api_changeFolder(request):
 
 	return HttpResponseNotFound()
 
-def api_mark_readed(request):
+def api_markRead(request):
 	"""Mark read procedure with given uuid in the post request."""
 
 	if not request.user.is_authenticated():
@@ -190,13 +190,16 @@ def api_mark_readed(request):
 	if request.method == "POST":
 		message_id = request.POST.get('message_id')
 
-		time = mark_readed(message_id)
-
-		return JsonResponse(dict(time=time))
+		time = markRead(message_id)
+		
+		if time is None:
+			return HttpResponseBadRequest()
+		else:
+			return JsonResponse(dict(time=time))
 
 	return HttpResponseNotFound()
 
-def api_mark_unreaded(request):
+def api_markUnread(request):
 	"""Mark unread procedure with given uuid in the post request."""
 
 	if not request.user.is_authenticated():
@@ -205,7 +208,10 @@ def api_mark_unreaded(request):
 	if request.method == "POST":
 		message_id = request.POST.get('message_id')
 
-		time = mark_unreaded(message_id)
+		if time is None:
+			return HttpResponseBadRequest()
+		else:
+			time = markUnread(message_id)
 
 		return JsonResponse(dict(time=time))
 
@@ -222,8 +228,8 @@ def api_getState(request):
 	state['outbox'] = [str(msg.uuid) for msg in settings.SET_MANAGER.getOutbox()]
 	state['folders'] = [str(fol.uuid) for fol in settings.SET_MANAGER.getFolders()]
 	state['all'] = [str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'all')]
-	state['readed'] = [str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'readed')]
-	state['unreaded'] = [str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'unreaded')]
+	state['read'] = [str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'read')]
+	state['unread'] = [str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'unread')]
 	for folder_id in state['folders']:
 		state[folder_id] = [str(msg.uuid) for msg in settings.SET_MANAGER.getInFolder(str(folder_id))]
 
@@ -289,25 +295,25 @@ def api_getAllMessages(request):
 		safe=False
 	)
 
-def api_getReadedMessages(request):
+def api_getReadMessages(request):
 	"""Returns a list containing read messages."""
 
 	if not request.user.is_authenticated():
 		return HttpResponseForbidden()
 
 	return JsonResponse(
-		[str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'readed')],
+		[str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'read')],
 		safe=False
 	)
 
-def api_getUnreadedMessages(request):
+def api_getUnreadMessages(request):
 	"""Returns a list containing unread messages."""
 
 	if not request.user.is_authenticated():
 		return HttpResponseForbidden()
 
 	return JsonResponse(
-		[str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'unreaded')],
+		[str(msg.uuid) for msg in getAllMessages(request.user.userprofile.uuid, 'unread')],
 		safe=False
 	)
 

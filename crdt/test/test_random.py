@@ -90,13 +90,13 @@ class Client():
 		self.post_data = dict(sessionid=self.sessionid, message_id=message_id, folder_choice=folder_choice, old_folder=old_folder, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
-	def mark_readed(self, message_id):
-		self.url = url(self.hostname, self.port, "api_mark_readed")
+	def markRead(self, message_id):
+		self.url = url(self.hostname, self.port, "api_markRead")
 		self.post_data = dict(sessionid=self.sessionid, message_id=message_id, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 	
-	def mark_unreaded(self, message_id):
-		self.url = url(self.hostname, self.port, "api_mark_unreaded")
+	def markUnread(self, message_id):
+		self.url = url(self.hostname, self.port, "api_markRead")
 		self.post_data = dict(sessionid=self.sessionid, message_id=message_id, csrfmiddlewaretoken=self.csrftoken)
 		self.response = self.client.post(self.url, self.post_data, cookies=self.cookies)
 
@@ -133,13 +133,13 @@ class Client():
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
-	def getReadedMessages(self):
-		self.url = url(self.hostname, self.port, "api_getReadedMessages")
+	def getReadMessages(self):
+		self.url = url(self.hostname, self.port, "api_getReadMessages")
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
-	def getUnreadedMessages(self):
-		self.url = url(self.hostname, self.port, "api_getUnreadedMessages")
+	def getUnreadMessages(self):
+		self.url = url(self.hostname, self.port, "api_getUnreadMessages")
 		self.response = self.client.get(self.url)
 		return json.loads(self.response.content)
 
@@ -154,8 +154,8 @@ def getState(host):
 	state['outbox'] = host.getOutbox()
 	state['folders'] = host.getFolders()
 	state['all'] = host.getAllMessages()
-	state['readed'] = host.getReadedMessages()
-	state['unreaded'] = host.getUnreadedMessages()
+	state['read'] = host.getReadMessages()
+	state['unread'] = host.getUnreadMessages()
 	for fol in state['folders']:
 		state[fol] = host.getInFolder(fol)
 
@@ -211,7 +211,7 @@ if __name__ == '__main__':
 	time_result = 0
 	count_result = [0, 0, 0, 0, 0, 0, 0]
 
-	op = ['add', 'add_folder', 'delete', 'delete_folder', 'change_folder', 'mark_readed', 'mark_unreaded']
+	op = ['add', 'add_folder', 'delete', 'delete_folder', 'change_folder', 'markRead', 'markUnread']
 
 	count_fol = 0
 
@@ -305,27 +305,27 @@ if __name__ == '__main__':
 			op_start = time.time()
 			host.changeFolder(new_fol, old_fol, msg)
 
-		# mark readed
+		# mark read
 		if operation == 5:
-			msg_list = state['unreaded']
+			msg_list = state['unread']
 
 			if not msg_list:
 				continue
 			msg = random.choice(msg_list)
 
 			op_start = time.time()
-			host.mark_readed(msg)
+			host.markRead(msg)
 
-		# mark readed
+		# mark unread
 		if operation == 6:
-			msg_list = state['readed']
+			msg_list = state['read']
 
 			if not msg_list:
 				continue
 			msg = random.choice(msg_list)
 
 			op_start = time.time()
-			host.mark_unreaded(msg)
+			host.markUnread(msg)
 
 		if host.response.status_code != 200:
 			print host.response.status_code
@@ -352,7 +352,19 @@ if __name__ == '__main__':
 
 		i += 1
 
+	start = time.time()
+	x = 0
+	while hst_list[0].getWait() or hst_list[1].getWait() or hst_list[2].getWait():
+		if x == 100:
+			print "[TEST] Waiting for hosts to converge.\n"
+			x = 0
+		else:
+			x += 1
+		pass
+
 	if i != 0:
+		print "[TEST] Wating for hosts to converge %.12f seconds." % (time.time() - start)
+
 		percent = int(float(i) / float(amount_op) * 100)
 		print '\n\033[1m[TEST] ' + str(percent) + ' %\tcompleted\033[0m\n'
 
@@ -370,21 +382,7 @@ if __name__ == '__main__':
 		print "[TEST] makes " + str(count) + " operation.\n"
 
 		print "[TEST] It took %.6f seconds (only the operation)." % time_result
-		print "[TEST] It took %.6f seconds per operation (only the operation).\n" % float(time_result/count)
-
-	start = time.time()
-	x = 0
-	while hst_list[0].getWait() or hst_list[1].getWait() or hst_list[2].getWait():
-		if x == 100:
-			print "[TEST] Waiting for hosts to converge.\n"
-			x = 0
-		else:
-			x += 1
-		pass
-
-	if i != 0:
-		print "[TEST] Wating for hosts to converge %.12f seconds." % (time.time() - start)
-		print "[TEST] Wating for hosts to converge %.12f seconds per operation.\n" % float((time.time() - start)/count)			
+		print "[TEST] It took %.6f seconds per operation (only the operation).\n" % float(time_result/count)			
 
 	# Check states
 
@@ -417,19 +415,19 @@ if __name__ == '__main__':
 
 	if set(state_0['all']) == set(state_1['all']) == set(state_2['all']):
 		print '[TEST] Passed check - got ' + str(len(state_0['all'])) + ' messages.'
-		if set(state_0['readed']) == set(state_1['readed']) == set(state_2['readed']):
-			print '[TEST] Passed readed check - got ' + str(len(state_0['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
+		if set(state_0['read']) == set(state_1['read']) == set(state_2['read']):
+			print '[TEST] Passed read check - got ' + str(len(state_0['read'])) + "/" + str(len(state_0['all'])) + ' messages.'
 		else:
-			print '[TEST] Not Passed subcheck! - got ' + str(len(state_0['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
-			print '[TEST] Not Passed subcheck! - got ' + str(len(state_1['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
-			print '[TEST] Not Passed subcheck! - got ' + str(len(state_2['readed'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_0['read'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_1['read'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_2['read'])) + "/" + str(len(state_0['all'])) + ' messages.'
 
-		if set(state_0['unreaded']) == set(state_1['unreaded']) == set(state_2['unreaded']):
-			print '[TEST] Passed unreaded check - got ' + str(len(state_0['unreaded'])) + "/" + str(len(state_0['all'])) + ' messages.'
+		if set(state_0['unread']) == set(state_1['unread']) == set(state_2['unread']):
+			print '[TEST] Passed unread check - got ' + str(len(state_0['unread'])) + "/" + str(len(state_0['all'])) + ' messages.'
 		else:
-			print '[TEST] Not Passed subcheck! - got ' + str(len(state_0['unreaded'])) + "/" + str(len(state_0['all'])) + ' messages.'
-			print '[TEST] Not Passed subcheck! - got ' + str(len(state_1['unreaded'])) + "/" + str(len(state_0['all'])) + ' messages.'
-			print '[TEST] Not Passed subcheck! - got ' + str(len(state_2['unreaded'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_0['unread'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_1['unread'])) + "/" + str(len(state_0['all'])) + ' messages.'
+			print '[TEST] Not Passed subcheck! - got ' + str(len(state_2['unread'])) + "/" + str(len(state_0['all'])) + ' messages.'
 	print "\n[TEST] Logout user on each host.\n"
 	hst_list[0].logout()
 	hst_list[1].logout()

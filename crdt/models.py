@@ -8,11 +8,11 @@ class UserProfile(models.Model):
 	password = models.CharField(max_length=40)
 	uuid = models.UUIDField(primary_key=True, editable=False)
 
-class Readed(models.Model):
+class ReadMarker(models.Model):
 	message_id = models.UUIDField(editable=True, default=None, null=True)
 	number = models.IntegerField()
 
-class Unreaded(models.Model):
+class UnreadMarker(models.Model):
 	message_id = models.UUIDField(editable=True, default=None, null=True)
 	number = models.IntegerField()
 

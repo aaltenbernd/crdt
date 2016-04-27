@@ -71,7 +71,7 @@
         <div class="row">
             <div class="col-sm-12">
                 <ul class="nav nav-pills">
-                    <li class="active"><a href="{% url 'show_messages' 'inbox' 'unreaded' '0:100' %}">Messages</a></li>
+                    <li class="active"><a href="{% url 'show_messages' 'inbox' 'unread' '0:100' %}">Messages</a></li>
                     {% if user.is_superuser %}
                     <li><a href="{% url 'admin:index' %}">Admin</a></li>                    
                     {% endif %}
@@ -111,22 +111,22 @@
                 <h5>folders:</h5>
                 <ul class="nav nav-pills nav-stacked">
                     {% if active_folder_id == 'inbox' %}
-                        <li class="active"><a href="{% url 'show_messages' 'inbox' 'unreaded' '0:100' %}">Inbox</a></li>
+                        <li class="active"><a href="{% url 'show_messages' 'inbox' 'unread' '0:100' %}">Inbox</a></li>
                     {% else %}
-                        <li><a href="{% url 'show_messages' 'inbox' 'unreaded' '0:100' %}">Inbox</a></li>
+                        <li><a href="{% url 'show_messages' 'inbox' 'unread' '0:100' %}">Inbox</a></li>
                     {% endif %}
                     {% if folders %} {% for folder in folders %}
                         {% if folder.uuid == active_folder_id %}
-                            <li class="active" ><a href="{% url 'show_messages' folder.uuid 'unreaded' '0:100' %}">{{ folder.title }}</a></li>
+                            <li class="active" ><a href="{% url 'show_messages' folder.uuid 'unread' '0:100' %}">{{ folder.title }}</a></li>
                         {% else %}
-                            <li><a href="{% url 'show_messages' folder.uuid 'unreaded' '0:100' %}">{{ folder.title }}</a></li>
+                            <li><a href="{% url 'show_messages' folder.uuid 'unread' '0:100' %}">{{ folder.title }}</a></li>
                         {% endif %}
                     {% endfor %} {% endif %}
                     <hr>
                     {% if active_folder_id == 'outbox' %}
-                        <li class="active"><a href="{% url 'show_messages' 'outbox' 'unreaded' '0:100' %}">Outbox</a></li>
+                        <li class="active"><a href="{% url 'show_messages' 'outbox' 'unread' '0:100' %}">Outbox</a></li>
                     {% else %}
-                        <li><a href="{% url 'show_messages' 'outbox' 'unreaded' '0:100' %}">Outbox</a></li>
+                        <li><a href="{% url 'show_messages' 'outbox' 'unread' '0:100' %}">Outbox</a></li>
                     {% endif %}
 
                 </ul>
@@ -175,12 +175,12 @@
                 <div class="row">
                     <div class="col-sm-3">
                     <ul class="nav nav-pills">
-                        {% if mark == 'unreaded' %}
-                            <li class="active"><a href="{% url 'show_messages' active_folder_id 'unreaded' '0:100' %}">Unreaded</a></li>
-                            <li><a href="{% url 'show_messages' active_folder_id 'readed' '0:100' %}">Readed</a></li>
-                        {% elif mark == 'readed' %}
-                            <li><a href="{% url 'show_messages' active_folder_id 'unreaded' '0:100' %}">Unreaded</a></li>
-                            <li class="active"><a href="{% url 'show_messages' active_folder_id 'readed' '0:100' %}">Readed</a></li>
+                        {% if mark == 'unread' %}
+                            <li class="active"><a href="{% url 'show_messages' active_folder_id 'unread' '0:100' %}">Unread</a></li>
+                            <li><a href="{% url 'show_messages' active_folder_id 'read' '0:100' %}">Read</a></li>
+                        {% elif mark == 'read' %}
+                            <li><a href="{% url 'show_messages' active_folder_id 'unread' '0:100' %}">Unread</a></li>
+                            <li class="active"><a href="{% url 'show_messages' active_folder_id 'read' '0:100' %}">Read</a></li>
                         {% endif %}
                     </ul>
                     </div>
@@ -251,10 +251,10 @@
                         {% endif %}
                         <form action="{% url 'mark' message.uuid active_folder_id mark %}">
                             <button class="btn btn-default btn-block btn-sm" type="submit" value="Submit">
-                                {% if mark == 'unreaded' %}
-                                    Mark Readed
-                                {% elif mark == 'readed' %}
-                                    Mark Unreaded
+                                {% if mark == 'unread' %}
+                                    Mark Read
+                                {% elif mark == 'read' %}
+                                    Mark Unread
                                 {% endif %}
                             </button></br>
                         </form>

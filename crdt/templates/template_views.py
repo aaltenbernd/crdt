@@ -10,7 +10,7 @@ from .forms import *
 from ..operation import *
 
 def index(request):
-    return redirect('show_messages', 'inbox', 'unreaded', '0:100')
+    return redirect('show_messages', 'inbox', 'unread', '0:100')
 
 def send_message(request, active_folder_id, mark):
     if not request.user.is_authenticated():
@@ -62,10 +62,10 @@ def mark(request, message_id, active_folder_id, mark):
     if not request.user.is_authenticated():
         return redirect('login')
 
-    if mark == 'readed':
-        mark_unreaded(message_id)
-    if mark == 'unreaded':
-        mark_readed(message_id)
+    if mark == 'read':
+        markUnread(message_id)
+    if mark == 'unread':
+        markRead(message_id)
 
     return redirect('show_messages', active_folder_id, mark, '0:100')
 
@@ -233,4 +233,4 @@ def delete_folder(request, active_folder_id):
 
     deleteFolder(active_folder_id)
 
-    return redirect('show_messages', 'inbox', 'unreaded', '0:100')
+    return redirect('show_messages', 'inbox', 'unread', '0:100')

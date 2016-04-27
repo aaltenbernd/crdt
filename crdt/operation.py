@@ -211,14 +211,14 @@ def changeFolder(message_id, old_folder, new_folder):
 
 	return time.time() - start
 
-def mark_readed(message_id):
+def markRead(message_id):
 	"""Refers new read marker to the set manager."""
 	
 	start = time.time()
 	
 	try:
 		# can't mark read if message is allready read
-		if settings.SET_MANAGER.messageReaded(message_id) == True:
+		if settings.SET_MANAGER.messageRead(message_id) == True:
 			return time.time() - start
 
 		# block while flatten
@@ -227,7 +227,7 @@ def mark_readed(message_id):
 
 		new_marker = dict(
 			uuid=str(message_id), 
-			operation='mark_readed', 
+			operation='markRead', 
 			number=settings.SET_MANAGER.mark[str(message_id)][0]
 		)
 		
@@ -237,14 +237,14 @@ def mark_readed(message_id):
 
 	return time.time() - start
 
-def mark_unreaded(message_id):
+def markUread(message_id):
 	"""Refers new unread marker to the set manager."""
 
 	start = time.time()
 
 	try:
 		# can't mark unread if message is allready unread
-		if settings.SET_MANAGER.messageReaded(message_id) == False:
+		if settings.SET_MANAGER.messageRead(message_id) == False:
 			return time.time() - start
 
 		# block while flatten
@@ -253,7 +253,7 @@ def mark_unreaded(message_id):
 
 		new_marker = dict(
 			uuid=str(message_id), 
-			operation='mark_un_readed', 
+			operation='markUnread', 
 			number=settings.SET_MANAGER.mark[str(message_id)][1]
 		)
 		
@@ -276,17 +276,17 @@ def getAllOutboxMessages(user_id, mark):
 			msg for msg in outbox 
 			if msg.author_id == user_id
 		]
-	if mark == 'readed':
+	if mark == 'read':
 		return [
 			msg for msg in outbox 
 			if msg.author_id == user_id 
-			and settings.SET_MANAGER.messageReaded(msg.uuid) == True
+			and settings.SET_MANAGER.messageRead(msg.uuid) == True
 		]
-	if mark == 'unreaded':
+	if mark == 'unread':
 		return [
 			msg for msg in outbox 
 			if msg.author_id == user_id 
-			and settings.SET_MANAGER.messageReaded(msg.uuid) == False
+			and settings.SET_MANAGER.messageRead(msg.uuid) == False
 		]
 
 def getAllInboxMessages(user_id, mark):
@@ -302,16 +302,16 @@ def getAllInboxMessages(user_id, mark):
 			msg for msg in inbox 
 			if msg.reader_id == user_id
 		]
-	if mark == 'readed':
+	if mark == 'read':
 		return [
 			msg for msg in inbox if msg.reader_id == user_id 
-			and settings.SET_MANAGER.messageReaded(msg.uuid) == True
+			and settings.SET_MANAGER.messageRead(msg.uuid) == True
 		]
-	if mark == 'unreaded':
+	if mark == 'unread':
 		return [
 			msg for msg in inbox 
 			if msg.reader_id == user_id 
-			and settings.SET_MANAGER.messageReaded(msg.uuid) == False
+			and settings.SET_MANAGER.messageRead(msg.uuid) == False
 		]
 
 def getAllMessages(user_id, mark):
@@ -327,17 +327,17 @@ def getAllMessages(user_id, mark):
 			msg for msg in messages
 			if msg.reader_id
 		]
-	if mark == 'readed':
+	if mark == 'read':
 		return [
 			msg for msg in messages 
 			if msg.reader_id == user_id 
-			and settings.SET_MANAGER.messageReaded(msg.uuid) == True
+			and settings.SET_MANAGER.messageRead(msg.uuid) == True
 		]
-	if mark == 'unreaded':
+	if mark == 'unread':
 		return [
 			msg for msg in messages 
 			if msg.reader_id == user_id 
-			and settings.SET_MANAGER.messageReaded(msg.uuid) == False
+			and settings.SET_MANAGER.messageRead(msg.uuid) == False
 		]
 
 def getAllMessagesInFolder(user_id, folder, mark):
@@ -353,17 +353,17 @@ def getAllMessagesInFolder(user_id, folder, mark):
 			msg for msg in messages 
 			if msg.reader_id == user_id
 		]
-	if mark == 'readed':
+	if mark == 'read':
 		return [
 			msg for msg in messages 
 			if msg.reader_id == user_id 
-			and settings.SET_MANAGER.messageReaded(msg.uuid) == True
+			and settings.SET_MANAGER.messageRead(msg.uuid) == True
 		]
-	if mark == 'unreaded':
+	if mark == 'unread':
 		return [
 			msg for msg in messages 
 			if msg.reader_id == user_id 
-			and settings.SET_MANAGER.messageReaded(msg.uuid) == False
+			and settings.SET_MANAGER.messageRead(msg.uuid) == False
 		]
 
 def getAllFolders(user_id):

@@ -44,7 +44,7 @@ class SetManager():
 			except:
 				pass
 
-		for mark in Readed.objects.all():
+		for mark in ReadMarker.objects.all():
 			try:
 				if mark.number >= self.mark[str(mark.message_id)][0]:
 					self.mark[str(mark.message_id)][0] = mark.number + 1
@@ -52,7 +52,7 @@ class SetManager():
 			except:
 				pass
 
-		for mark in Unreaded.objects.all():
+		for mark in UnreadMarker.objects.all():
 			try:
 				if mark.number >= self.mark[str(mark.message_id)][1]:
 					self.mark[str(mark.message_id)][1] = mark.number + 1
@@ -88,26 +88,26 @@ class SetManager():
 
 		data['uuid'] = uuid.UUID(data['uuid'])
 
-		if operation == 'mark_readed':
+		if operation == 'markRead':
 			if not self.mark.get(str(data['uuid']), None):
 				self.mark[str(data['uuid'])] = [0, 0, set(), set()]
 
 			self.mark[str(data['uuid'])][2].add(data['number'])
 
-			obj = Readed(message_id=data['uuid'], number=data['number'])
+			obj = ReadMarker(message_id=data['uuid'], number=data['number'])
 
 			if self.mark[str(data['uuid'])][0] < data['number']+1:
 				self.mark[str(data['uuid'])][0] = data['number']+1			
 
 			return obj
 
-		if operation == 'mark_un_readed':
+		if operation == 'markUnread':
 			if not self.mark.get(str(data['uuid']), None):
 				self.mark[str(data['uuid'])] = [0, 0, set(), set()]
 
 			self.mark[str(data['uuid'])][3].add(data['number'])
 
-			obj = Unreaded(message_id=data['uuid'], number=data['number'])
+			obj = UnreadMarker(message_id=data['uuid'], number=data['number'])
 
 			if self.mark[str(data['uuid'])][1] < data['number']+1:
 				self.mark[str(data['uuid'])][1] = data['number']+1
@@ -184,7 +184,7 @@ class SetManager():
 
 		return obj
 
-	def messageReaded(self, uuid):
+	def messageRead(self, uuid):
 		try:
 			len_r = len(self.mark[str(uuid)][2])
 			len_u = len(self.mark[str(uuid)][3])
@@ -280,17 +280,17 @@ class SetManager():
 			if message not in self.add_messages:
 				message.delete()
 
-		for readed in Readed.objects.all():
-			if not self.mark.get(str(readed.message_id), None):
-				readed.delete()
-			elif readed.number not in self.mark[str(readed.message_id)][2]:
-				readed.delete()
+		for read in ReadMarker.objects.all():
+			if not self.mark.get(str(read.message_id), None):
+				read.delete()
+			elif read.number not in self.mark[str(read.message_id)][2]:
+				read.delete()
 
-		for unreaded in Unreaded.objects.all():
-			if not self.mark.get(str(unreaded.message_id), None):
-				unreaded.delete()
-			elif unreaded.number not in self.mark[str(unreaded.message_id)][2]:
-				unreaded.delete()
+		for unread in UnreadMarker.objects.all():
+			if not self.mark.get(str(unread.message_id), None):
+				unread.delete()
+			elif unread.number not in self.mark[str(unread.message_id)][2]:
+				unread.delete()
 
 		for message in AddMessage.objects.all().exclude(folder_id=None):
 			if not self.folders_dict.get(str(message.folder_id), None):
@@ -398,7 +398,7 @@ class SetManager():
 
 		# flat marker
 		for message in set(self.add_messages):
-			if self.messageReaded(message.uuid):
+			if self.messageRead(message.uuid):
 				self.mark[str(message.uuid)][2] = set()
 				self.mark[str(message.uuid)][2].add(self.mark[str(message.uuid)][0]-1)
 			else:
