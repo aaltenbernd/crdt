@@ -6,6 +6,8 @@ from . import receive
 from . import api
 
 urlpatterns = [
+    # Template URLs
+
     url(r'^admin/', include(admin.site.urls)),
 
     url(r'^$', template_views.index, name='index'),
@@ -71,8 +73,12 @@ urlpatterns = [
         template_views.send_message, 
         name='send_message'
     ),
+
+    # URL for receiving operations from other hosts
     
     url(r'^receive/', receive.receive, name='receive'),
+
+    # API URLs
 
     url(r'^api_register$', api.api_register),
     url(r'^api_login$', api.api_login),
