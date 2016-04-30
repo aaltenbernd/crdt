@@ -387,7 +387,8 @@ class SetManager():
 
 			for other_folder in self.add_folders:
 				if hash(other_folder) > hash(folder):
-					flat_in_folder = self.in_folder[str(folder.uuid)].difference(self.in_folder[str(other_folder.uuid)])
+					in_folder = self.in_folder[str(folder.uuid)]
+					flat_in_folder = in_folder.difference(self.in_folder[str(other_folder.uuid)])
 					self.in_folder[str(folder.uuid)] = flat_in_folder
 
 		# flat add_messages
