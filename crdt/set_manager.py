@@ -93,7 +93,8 @@ class SetManager():
 			self.buffer.put(dict(data))
 			return
 
-		self.write_state()
+		# for testing
+		# self.write_state()
 
 		obj = self.addToSet(data)
 		if obj:
