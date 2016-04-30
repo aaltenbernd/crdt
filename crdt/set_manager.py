@@ -15,7 +15,7 @@ from .send import toQueue
 from .models import *
 
 class SetManager():
-	"""Basically the crdt class."""
+	"""Basically the crdt."""
 
 	def __init__(self):
 		"""
