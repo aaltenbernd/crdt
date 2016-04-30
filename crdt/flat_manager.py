@@ -59,7 +59,8 @@ class FlatManager():
 		print '[COORDINATOR] PREPARE : CHECK QUEUES'
 
 		for host in settings.OTHER_HOSTS:
-			while not settings.SENDER[host['id']].queue.empty() or settings.SENDER[host['id']].isSending():
+			while (not settings.SENDER[host['id']].queue.empty() 
+					or settings.SENDER[host['id']].isSending()):
 				print '[COORDINATOR] PREPARE : QUEUE FULL'
 				time.sleep(1)
 				pass
@@ -148,7 +149,8 @@ class FlatManager():
 			print '[FOLLOW] PREPARE : CHECK QUEUE'
 
 			for host in settings.OTHER_HOSTS:
-				while not settings.SENDER[host['id']].queue.empty() or settings.SENDER[host['id']].isSending():
+				while (not settings.SENDER[host['id']].queue.empty() 
+						or settings.SENDER[host['id']].isSending()):
 					print '[FOLLOW] PREPARE : QUEUE FULL'
 					time.sleep(1)
 					pass
