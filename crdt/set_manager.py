@@ -15,7 +15,14 @@ from .send import toQueue
 from .models import *
 
 class SetManager():
+	"""Basically the crdt class."""
+
 	def __init__(self):
+		"""
+		Reading the Objects out of the database.
+		Afterwards adding certain Objects to the sets.
+		"""
+
 		self.add_messages = set(AddMessage.objects.filter(folder_id = None))
 		self.delete_messages = set(DeleteMessage.objects.all())
 		self.add_folders = set(AddFolder.objects.all())
@@ -67,6 +74,15 @@ class SetManager():
 		self.queue = Queue.Queue()
 		
 	def add(self, data, queue):
+		"""
+		Handling incoming operation.
+		If operation is executed locally 
+		add it to the queue of sending thread.
+		Block while flatten is processing.
+		While commited buffering all remote operations.
+		In the end add Object to the persisting thread.
+		"""
+
 		if queue:
 			while settings.FLAT_MANAGER.getFlat():
 				print 'FLAT: Block till flatted'
@@ -84,6 +100,11 @@ class SetManager():
 			self.queue.put(obj)
 
 	def addToSet(self, data):
+		"""
+		Handling incoming local and remote operations.
+		Creating an object and adding it to the depending set.
+		"""
+
 		operation = data.pop('operation')		
 
 		data['uuid'] = uuid.UUID(data['uuid'])
@@ -324,16 +345,11 @@ class SetManager():
 
 	def write_state(self):
 		"""
-		Writing periodically the amount of objects to flat_ID.txt.
+		Writing the amount of objects to flat_ID.txt.
 		Just for testing.
 		"""
 
 		file_name = 'flat_%s.txt' % str(settings.RUNNING_HOST['id'])
-
-		#time.sleep(10)
-		#write_time = 0
-
-		#while True:
 
 		with open(file_name, 'a') as f:
 			count = 0
@@ -358,8 +374,6 @@ class SetManager():
 					pass
 
 			f.write("%s\n" % str(count))
-			#time.sleep(5)
-			#write_time += 5
 
 	def flat(self):
 		"""
@@ -373,7 +387,8 @@ class SetManager():
 
 			for other_folder in self.add_folders:
 				if hash(other_folder) > hash(folder):
-					self.in_folder[str(folder.uuid)] = self.in_folder[str(folder.uuid)].difference(self.in_folder[str(other_folder.uuid)])
+					flat_in_folder = self.in_folder[str(folder.uuid)].difference(self.in_folder[str(other_folder.uuid)])
+					self.in_folder[str(folder.uuid)] = flat_in_folder
 
 		# flat add_messages
 		for message in self.add_messages.intersection(self.delete_messages):
@@ -411,8 +426,10 @@ class SetManager():
 		# flat delete_folders
 		self.delete_folders = set()
 
+		# for flatten the database
 		self.do_flat = True
 
+		# reseting counting the operations
 		self.op_count = 0
 
 	def clearBuffer(self):
